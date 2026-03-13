@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【2026年最新】船橋市の少年サッカー全33チーム徹底比較！月謝・当番まとめ</title>
+    <meta name="description" content="船橋市内の主要ジュニアサッカーチーム全33団体の「親の負担（当番）」「月謝」「駐車場」の実態を、現役パパコーチが徹底比較！">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ─── Design Tokens ─────────────────────────────── */
+        :root {
+            --gold: #d4af37;
+            --gold-dim: rgba(212,175,55,0.15);
+            --gold-dim2: rgba(212,175,55,0.08);
+            --blue-deep: #003366;
+            --green: #10b981;
+            --blue: #3b82f6;
+            --amber: #f59e0b;
+            --bg: #0b1220;
+            --surface: #111827;
+            --surface2: #1a2235;
+            --border: #1e293b;
+            --border2: #2d3a50;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        /* ─── Reset & Base ──────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+            line-height: 1.6;
+        }
+
+        /* ─── Typography ────────────────────────────────── */
+        .font-display { font-family: 'Oswald', sans-serif; }
+
+        /* ─── Layout ────────────────────────────────────── */
+        .container { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+        /* ─── Header ────────────────────────────────────── */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(11,18,32,0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border2);
+            padding: 14px 0;
+        }
+        .site-header__inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .site-header__logo {
+            font-family: 'Oswald', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #fff;
+        }
+        .site-header__logo span { color: var(--gold); }
+        .site-header__badge {
+            font-family: 'Oswald', sans-serif;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            border: 1px solid var(--border2);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* ─── Section Heading ───────────────────────────── */
+        .section-heading {
+            font-family: 'Oswald', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 40px 0 18px;
+        }
+        .section-heading::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border2);
+        }
+
+        /* ─── Lead Box ──────────────────────────────────── */
+        .lead-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border2);
+            margin-bottom: 12px;
+        }
+        .lead-box__catch {
+            font-size: 15px;
+            font-weight: 900;
+            line-height: 1.7;
+            margin-bottom: 14px;
+            color: #fff;
+        }
+        .lead-box__body {
+            font-size: 13px;
+            color: #b0bec5;
+            line-height: 1.8;
+        }
+        .lead-box__body + .lead-box__body { margin-top: 10px; }
+        .lead-box__cta {
+            display: inline-block;
+            margin-top: 14px;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 13px;
+            border-bottom: 1px solid var(--gold-dim);
+            padding-bottom: 2px;
+        }
+
+        /* ─── Featured Cards ────────────────────────────── */
+        .featured-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .featured-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border2);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .featured-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .featured-card__hero {
+            height: 140px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-bottom: 1px solid var(--border2);
+        }
+        .featured-card__hero-text {
+            font-family: 'Oswald', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+        }
+        .featured-card__badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: var(--gold);
+            color: #000;
+            font-family: 'Oswald', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+        .featured-card__body { padding: 20px; }
+        .featured-card__name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 22px;
+            color: #fff;
+            margin-bottom: 14px;
+        }
+        .featured-card__specs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .featured-card__spec-item {
+            background: var(--bg);
+            padding: 10px 12px;
+        }
+        .featured-card__spec-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            display: block;
+            margin-bottom: 3px;
+        }
+        .featured-card__spec-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .featured-card__review {
+            background: var(--gold-dim2);
+            border-left: 3px solid var(--gold);
+            padding: 12px 14px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #cbd5e1;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+        .featured-card__review strong { color: var(--gold); }
+
+        /* Style color overrides */
+        .style-a { color: var(--green) !important; }
+        .style-b { color: var(--blue) !important; }
+        .style-c { color: var(--amber) !important; }
+
+        /* ─── Affiliate ─────────────────────────────────── */
+        .affiliate-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px;
+            border: 1px solid var(--border2);
+            margin-bottom: 12px;
+        }
+        .affiliate-box__title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 14px;
+            color: var(--blue);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .affiliate-box__sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+        .aff-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-decoration: none;
+            margin-bottom: 8px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .aff-item:last-child { margin-bottom: 0; }
+        .aff-item:hover { border-color: var(--gold); background: var(--gold-dim2); }
+        .aff-item__icon {
+            width: 42px;
+            height: 42px;
+            background: #fff;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .aff-item__title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .aff-item__desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .aff-item__arrow {
+            font-size: 14px;
+            color: var(--gold);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ─── Filter Panel ──────────────────────────────── */
+        .filter-panel {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px;
+            border: 1px solid var(--border2);
+            margin-bottom: 14px;
+        }
+        .filter-group { margin-bottom: 14px; }
+        .filter-group:last-child { margin-bottom: 0; }
+        .filter-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .filter-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+        .f-btn {
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            color: var(--text-muted);
+            padding: 7px 13px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .f-btn:hover { border-color: var(--text-muted); color: var(--text); }
+        .f-btn.active {
+            background: var(--blue-deep);
+            color: #fff;
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(212,175,55,0.2);
+        }
+
+        /* ─── Table Area ────────────────────────────────── */
+        .db-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .count-badge {
+            font-family: 'Oswald', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            background: var(--gold);
+            color: #000;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+        .scroll-hint {
+            font-size: 10px;
+            color: var(--text-dim);
+            display: none;
+        }
+        @media (max-width: 600px) { .scroll-hint { display: block; } }
+
+        .table-wrapper {
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border2);
+            box-shadow: var(--shadow);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 820px; }
+
+        thead th {
+            background: #060d1a;
+            color: var(--gold);
+            font-family: 'Oswald', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid var(--border2);
+            white-space: nowrap;
+        }
+        thead th.col-team {
+            position: sticky;
+            left: 0;
+            z-index: 30;
+        }
+
+        tbody tr {
+            transition: background 0.12s;
+        }
+        tbody tr:nth-child(even) td { background: var(--surface2); }
+        tbody tr:nth-child(odd) td  { background: var(--surface); }
+        tbody tr:hover td { background: #1f2d44 !important; }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        td.col-team {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            border-right: 1px solid var(--border2);
+            min-width: 160px;
+        }
+        tbody tr:nth-child(even) td.col-team { background: var(--surface2); }
+        tbody tr:nth-child(odd) td.col-team  { background: var(--surface); }
+        tbody tr:hover td.col-team            { background: #1f2d44 !important; }
+
+        /* Table cell contents */
+        .cell-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            display: block;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .style-label {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            border: 1px solid;
+        }
+        .style-label-a { background: rgba(16,185,129,0.08); color: var(--green); border-color: rgba(16,185,129,0.4); }
+        .style-label-b { background: rgba(59,130,246,0.08); color: var(--blue);  border-color: rgba(59,130,246,0.4); }
+        .style-label-c { background: rgba(245,158,11,0.08); color: var(--amber); border-color: rgba(245,158,11,0.4); }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 5px 8px;
+            font-size: 11px;
+            align-items: baseline;
+        }
+        .spec-key { color: var(--text-dim); white-space: nowrap; }
+        .spec-val { color: #cbd5e1; font-weight: 600; }
+        .spec-val.highlight { color: #fff; }
+
+        .cell-review {
+            font-size: 11px;
+            line-height: 1.7;
+            color: #94a3b8;
+            background: var(--bg);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            border-left: 2px solid var(--gold);
+            min-width: 180px;
+        }
+
+        /* ─── Empty State ───────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+        .empty-state__icon { font-size: 32px; margin-bottom: 12px; }
+
+        /* ─── Scrollbar Styling ─────────────────────────── */
+        .table-wrapper::-webkit-scrollbar { width: 5px; }
+        .table-wrapper::-webkit-scrollbar-track { background: var(--bg); }
+        .table-wrapper::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+        .table-scroll::-webkit-scrollbar { height:         .table-scroll::-webkit-scrollbar { height: 5px; }
+        .table-scroll::-webkit-scrollbar-track { background: var(--bg); }
+        .table-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="site-header__inner">
+            <div class="site-header__logo font-display">
+                FUNABASHI <span>SOCCER</span> DB
+            </div>
+            <div class="site-header__badge">2026 EDITION</div>
+        </div>
+    </div>
+</header>
+
+<main class="container" role="main">
+
+    <!-- ── Lead ── -->
+    <div class="lead-box" style="margin-top: 28px;">
+        <p class="lead-box__catch">
+            「船橋市で子どもにサッカーを習わせたいけど、<br>
+            お茶当番や週末の送迎がネックで踏み出せない…」
+        </p>
+        <p class="lead-box__body">
+            ネットで検索しても「本当に親の負担がないチームはどこか」「毎月のリアルな費用はいくらか」といった、
+            <strong style="color:#fff;">保護者が一番知りたい情報</strong>はなかなか出てきません。
+        </p>
+        <p class="lead-box__body">
+            本記事では、船橋市内の主要ジュニアサッカーチーム全33団体の実態を現役パパコーチの目線で徹底調査。
+            「当番ゼロ」のスクールから「月謝格安」少年団、プロを目指す「強豪」まで、
+            ご家庭のライフスタイルにぴったりのチームが見つかります。
+        </p>
+        <span class="lead-box__cta">↓ 特選3強と絞り込みフィルターをお試しください</span>
+    </div>
+
+    <!-- ── Hall of Fame ── -->
+    <div class="section-heading font-display" aria-label="殿堂入り3選">
+        Hall of Fame &nbsp;/&nbsp; 殿堂入り3選
+    </div>
+
+    <div class="featured-grid">
+
+        <article class="featured-card">
+            <div class="featured-card__hero">
+                <span class="featured-card__badge">FACILITY NO.1</span>
+                <span class="featured-card__hero-text">IMAGE: チームのロゴや練習風景</span>
+            </div>
+            <div class="featured-card__body">
+                <h2 class="featured-card__name">ジェフ千葉（船橋校）</h2>
+                <div class="featured-card__specs">
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">サポート・当番</span>
+                        <span class="featured-card__spec-value style-a">当番完全ゼロ</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">月謝目安</span>
+                        <span class="featured-card__spec-value">¥8,800〜</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">チーム方針</span>
+                        <span class="featured-card__spec-value">プロ育成・競技志向</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">エリア / 駐車</span>
+                        <span class="featured-card__spec-value">坪井町 / 駐車場◎</span>
+                    </div>
+                </div>
+                <div class="featured-card__review">
+                    <strong>パパコーチ解説：</strong>
+                    2026年最新施設。親の負担ゼロでJ下部エリート指導。送迎の快適さも地域No.1。
+                </div>
+            </div>
+        </article>
+
+        <article class="featured-card">
+            <div class="featured-card__hero">
+                <span class="featured-card__badge">TECHNICAL NO.1</span>
+                <span class="featured-card__hero-text">IMAGE: チームのロゴや練習風景</span>
+            </div>
+            <div class="featured-card__body">
+                <h2 class="featured-card__name">VIVAIO船橋</h2>
+                <div class="featured-card__specs">
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">サポート・当番</span>
+                        <span class="featured-card__spec-value style-b">遠征時のみ配車等</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">月謝目安</span>
+                        <span class="featured-card__spec-value">¥7,700〜</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">チーム方針</span>
+                        <span class="featured-card__spec-value">ドリブル・技術至上主義</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">エリア / 駐車</span>
+                        <span class="featured-card__spec-value">豊富 / 駐車場○</span>
+                    </div>
+                </div>
+                <div class="featured-card__review">
+                    <strong>パパコーチ解説：</strong>
+                    圧倒的な「個」の力。豊富の自社3拠点体制で練習量も段違い。中学以降に化ける。
+                </div>
+            </div>
+        </article>
+
+        <article class="featured-card">
+            <div class="featured-card__hero">
+                <span class="featured-card__badge">SUPPORT NO.1</span>
+                <span class="featured-card__hero-text">IMAGE: チームのロゴや練習風景</span>
+            </div>
+            <div class="featured-card__body">
+                <h2 class="featured-card__name">リベルタサッカースクール</h2>
+                <div class="featured-card__specs">
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">サポート・当番</span>
+                        <span class="featured-card__spec-value style-a">当番完全ゼロ</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">月謝目安</span>
+                        <span class="featured-card__spec-value">¥8,840</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">チーム方針</span>
+                        <span class="featured-card__spec-value">人間力・楽しさ重視</span>
+                    </div>
+                    <div class="featured-card__spec-item">
+                        <span class="featured-card__spec-label">エリア / 駐車</span>
+                        <span class="featured-card__spec-value">市内各所 / 駐車場△</span>
+                    </div>
+                </div>
+                <div class="featured-card__review">
+                    <strong>パパコーチ解説：</strong>
+                    共働き世帯の救世主。お茶当番・配車一切なし。平日の習い事としての完成度が非常に高い。
+                </div>
+            </div>
+        </article>
+
+    </div><!-- /.featured-grid -->
+
+    <!-- ── Affiliate ── -->
+    <div class="affiliate-box">
+        <h3 class="affiliate-box__title font-display">Coach's Advice &nbsp;/&nbsp; 失敗しない初期装備</h3>
+        <p class="affiliate-box__sub">チーム選びと同時に準備しておきたい、パパコーチ推奨の必須アイテムです。</p>
+
+        <a href="#your-link" class="aff-item">
+            <div class="aff-item__icon">🎒</div>
+            <div>
+                <span class="aff-item__title">サッカー専用リュック（ボール収納型）</span>
+                <span class="aff-item__desc">両手が空くので自転車送迎の安全対策に必須です。</span>
+            </div>
+            <span class="aff-item__arrow">›</span>
+        </a>
+        <a href="#your-link" class="aff-item">
+            <div class="aff-item__icon">🧴</div>
+            <div>
+                <span class="aff-item__title">ママ用 超強力UVカット＆冷感グッズ</span>
+                <span class="aff-item__desc">当番や応援の必需品。グラウンドの照り返しは想像以上です。</span>
+            </div>
+            <span class="aff-item__arrow">›</span>
+        </a>
+    </div>
+
+    <!-- ── Database ── -->
+    <div id="database" class="section-heading font-display" aria-label="全33チーム徹底比較リスト">
+        All 33 Teams &nbsp;/&nbsp; 徹底比較リスト
+    </div>
+
+    <!-- Filter -->
+    <section class="filter-panel" aria-label="絞り込みフィルター">
+        <div class="filter-group">
+            <span class="filter-label">1. Style &mdash; 参加スタイル</span>
+            <div class="filter-buttons" id="style-filter" role="group" aria-label="スタイル絞り込み">
+                <button class="f-btn active" data-val="all">すべて</button>
+                <button class="f-btn" data-val="A">当番なし</button>
+                <button class="f-btn" data-val="B">サポート</button>
+                <button class="f-btn" data-val="C">協力型</button>
+            </div>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">2. Cost &mdash; 月謝目安</span>
+            <div class="filter-buttons" id="cost-filter" role="group" aria-label="月謝絞り込み">
+                <button class="f-btn active" data-val="all">すべて</button>
+                <button class="f-btn" data-val="low">¥5,000以下</button>
+                <button class="f-btn" data-val="high">¥8,000以上</button>
+            </div>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">3. Area &mdash; エリア</span>
+            <div class="filter-buttons" id="area-filter" role="group" aria-label="エリア絞り込み">
+                <button class="f-btn active" data-val="all">すべて</button>
+                <button class="f-btn" data-val="north">北部</button>
+                <button class="f-btn" data-val="central">中央</button>
+                <button class="f-btn" data-val="south">南部・西部</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="db-header">
+        <span class="count-badge" id="count-display" aria-live="polite">33 TEAMS</span>
+        <span class="scroll-hint">← 横スクロールできます →</span>
+    </div>
+
+    <div class="table-wrapper" role="region" aria-label="チーム比較テーブル">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-team" scope="col">TEAM &amp; STYLE</th>
+                        <th scope="col">MAIN SPEC</th>
+                        <th scope="col">SUB SPEC</th>
+                        <th scope="col">DADDY COACH'S REVIEW</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<script>
+/* ── Data ────────────────────────────────────────────── */
+const teams = [
+    { name:"ジェフ千葉(船橋)",  style:"A", sLabel:"当番完全ゼロ",    cost:8800, cText:"¥8,800",      support:"親の負担なし",        area:"north",   aText:"北部 (坪井町)",    car:"◎ 大型完備",      surface:"専用人工芝",      vibe:"プロ育成・競技志向",     path:"J下部・強豪JY",    note:"圧倒的ブランド力と最新施設。親の負担は月謝以外皆無のエリート環境。" },
+    { name:"VIVAIO船橋",        style:"B", sLabel:"遠征時協力",       cost:7700, cText:"¥7,700",      support:"遠征時の配車等",       area:"north",   aText:"北部 (豊富)",      car:"○ 拠点による",    surface:"土 / フットサル",  vibe:"技術・個の力重視",       path:"VIVAIO JY等",      note:"「個」を極めるならここ。ドリブル特化の伝統的指導で中学以降に伸びる。" },
+    { name:"リベルタ",           style:"A", sLabel:"お茶当番なし",     cost:8840, cText:"¥8,840",      support:"当番・送迎負担なし",   area:"central", aText:"市内各所",          car:"△ 会場による",    surface:"公園・小学校",     vibe:"人間力・楽しさ",         path:"部活・他競技",      note:"共働きの最強の味方。全員が主役になれる優しい指導方針で人気絶大。" },
+    { name:"船橋イレブン",       style:"B", sLabel:"月1回当番",        cost:5000, cText:"¥5,000",      support:"月1回程度の当番",      area:"central", aText:"中央 (法典)",       car:"○ 確保あり",      surface:"法典小",           vibe:"県上位・バランス",       path:"イレブンJY",        note:"法典エリアの強豪。ジュニアからユースまでの一貫指導体制が魅力。" },
+    { name:"エスピリート船橋",   style:"A", sLabel:"当番負担なし",     cost:5000, cText:"¥5,000",      support:"当番なし",             area:"central", aText:"中央 (市内)",       car:"△ 近隣コインP",   surface:"市内グラウンド",   vibe:"コスパ＆技術",           path:"クラブチーム",      note:"当番なしで競技志向の穴場チーム。指導者の熱量が高くコスパ最強。" },
+    { name:"習志野台FC",         style:"C", sLabel:"保護者運営",        cost:2000, cText:"約¥2,000",    support:"運営主体・当番あり",   area:"central", aText:"中央 (習志野台)",   car:"△ 駐車証制限",    surface:"習志野台第2小",    vibe:"褒める指導",             path:"地元中・クラブ",    note:"マンモス校ゆえの活気。年払い換算で圧倒的な安さが魅力。" },
+    { name:"中野木FC",           style:"C", sLabel:"当番持ち回り",      cost:2500, cText:"¥2,500〜",    support:"当番・役員あり",       area:"central", aText:"中央 (中野木)",     car:"× 駐車禁止",      surface:"中野木小",         vibe:"競争環境",               path:"前原中・中野木中",  note:"児童数が多い学区ならではの激しい競争。送迎は徒歩・自転車必須。" },
+    { name:"夏見FC",             style:"C", sLabel:"イベント協力",      cost:3000, cText:"¥3,000",      support:"イベント時協力",       area:"central", aText:"中央 (夏見)",       car:"△ 台数限定",      surface:"夏見台小",         vibe:"伝統と熱血",             path:"市船等意識",        note:"創立50年超の古豪。市船や強豪校を目指す子が集まる熱血指導。" },
+    { name:"船橋FC(選抜)",       style:"B", sLabel:"遠征時配車",        cost:0,    cText:"都度払い",    support:"遠征時の配車",         area:"central", aText:"中央 (市内)",       car:"○ あり",          surface:"人工芝/芝/土",     vibe:"市代表・最高峰",         path:"県内強豪JY",        note:"各チームのエースが集うトレセン的組織。合格すれば一目置かれる存在に。" },
+    { name:"若松FC",             style:"C", sLabel:"月1〜2回当番",      cost:2500, cText:"¥2,500",      support:"月1〜2回当番",        area:"south",   aText:"南部 (若松)",       car:"○ 駐車スペース",  surface:"若松小",           vibe:"アットホーム",           path:"若松中主体",        note:"海沿いの開放的な環境。親同士の仲が良く、初心者も入りやすい。" },
+    { name:"高根東SSS",          style:"C", sLabel:"協力必須",          cost:3000, cText:"¥3,000",      support:"当番・保護者協力",     area:"central", aText:"中央 (高根台)",     car:"△ 当番のみ",      surface:"高根東小",         vibe:"礼儀と規律",             path:"高根台中",          note:"挨拶やマナー指導が丁寧。「スポ少らしさ」を大切にする伝統あるチーム。" },
+    { name:"葛飾FC",             style:"B", sLabel:"最低限の協力",      cost:3500, cText:"¥3,500",      support:"最低限の協力",         area:"south",   aText:"南部 (西船)",       car:"× コインP",       surface:"葛飾小",           vibe:"メリハリ指導",           path:"葛飾中・私立",      note:"西船橋エリアの強豪。中学受験との両立を意識する家庭も多い。" },
+    { name:"薬円台SC",           style:"C", sLabel:"役員・当番あり",    cost:3000, cText:"¥3,000",      support:"当番・役員あり",       area:"central", aText:"中央 (薬円台)",     car:"△ 制限あり",      surface:"薬円台小",         vibe:"明るく元気",             path:"薬園台中",          note:"地域密着型。学年を超えた縦のつながりが強く、面倒見が良い。" },
+    { name:"塚田FC",             style:"C", sLabel:"地域密着型",        cost:2000, cText:"¥2,000",      support:"当番あり",             area:"central", aText:"中央 (塚田)",       car:"× 徒歩/自転車",   surface:"塚田小",           vibe:"楽しさ重視",             path:"塚田中等",          note:"新船橋エリアの急増する児童の受け皿。月謝2000円は非常に破格。" },
+    { name:"行田東FFC",          style:"C", sLabel:"ボランティア",      cost:3000, cText:"¥3,000",      support:"ボランティア協力",     area:"central", aText:"中央 (行田)",       car:"○ 公園利用可",    surface:"行田公園等",       vibe:"伸び伸びプレー",         path:"行田中",            note:"行田公園という広大な環境を使えるのが最大の強み。のびのびプレー。" },
+    { name:"二宮FC",             style:"C", sLabel:"月1回当番",         cost:3000, cText:"¥3,000",      support:"月1回当番",            area:"central", aText:"中央 (滝不動)",     car:"△ 駐車証",        surface:"二宮小",           vibe:"伝統と親睦",             path:"二宮中",            note:"親の飲み会などの親睦行事も活発な、昔ながらの良い少年団の雰囲気。" },
+    { name:"芝山東FC",           style:"C", sLabel:"当番持ち回り",      cost:3000, cText:"¥3,000",      support:"当番持ち回り",         area:"central", aText:"中央 (芝山)",       car:"△ 制限あり",      surface:"芝山東小",         vibe:"大会上位実績",           path:"芝山中等",          note:"少年団ながら県大会常連の代もある、指導力の高いチーム。" },
+    { name:"法典FC",             style:"C", sLabel:"保護者運営",        cost:3000, cText:"¥3,000",      support:"運営・当番あり",       area:"central", aText:"中央 (法典)",       car:"△ 限定的",        surface:"法典小",           vibe:"地元愛・基礎",           path:"法典中・旭中",      note:"イレブンとは異なり、地元中でサッカーを楽しむことを前提とした育成。" },
+    { name:"船橋KSC",            style:"C", sLabel:"当番あり",          cost:3000, cText:"¥3,000",      support:"当番あり",             area:"south",   aText:"南部 (海神)",       car:"× なし",          surface:"海神エリア土",     vibe:"楽しさ重視",             path:"海神中",            note:"勝ち負けよりも、まずはボールに触れる喜びを教える方針。" },
+    { name:"峰台FC",             style:"C", sLabel:"役員・当番あり",    cost:3000, cText:"¥3,000",      support:"役員・当番あり",       area:"central", aText:"中央 (峰台)",       car:"× なし",          surface:"峰台小",           vibe:"仲間づくり",             path:"宮本中",            note:"船橋駅近くのエリア。保護者の協力体制がしっかりしている。" },
+    { name:"宮本FC",             style:"C", sLabel:"当番持ち回り",      cost:3000, cText:"¥3,000",      support:"当番持ち回り",         area:"south",   aText:"南部 (宮本)",       car:"× なし",          surface:"宮本小",           vibe:"地域交流重視",           path:"宮本中",            note:"大神宮下エリア。地域のイベントにも積極的に参加するアットホームさ。" },
+    { name:"船橋JYS",            style:"C", sLabel:"協力型",            cost:2500, cText:"¥2,500",      support:"協力型（車出し等）",   area:"north",   aText:"北部 (二和)",       car:"○ 確保あり",      surface:"二和小",           vibe:"基礎技術習得",           path:"二和中",            note:"二和エリアの老舗チーム。車出しのローテーションが機能している。" },
+    { name:"海神スポーツ",       style:"C", sLabel:"保護者協力",        cost:3000, cText:"¥3,000",      support:"保護者協力",           area:"south",   aText:"南部 (海神)",       car:"× なし",          surface:"海神小",           vibe:"スポーツ親睦",           path:"海神中",            note:"サッカー以外のレクリエーションもあり、総合的な運動能力を育む。" },
+    { name:"小栗原FC",           style:"C", sLabel:"当番あり",          cost:3000, cText:"¥3,000",      support:"当番あり",             area:"south",   aText:"南部 (本中山)",     car:"× なし",          surface:"小栗原小",         vibe:"市川と交流",             path:"葛飾中・市川JY",    note:"下総中山駅周辺。市川市のチームとの練習試合が頻繁にあるのが特徴。" },
+    { name:"西海神SC",           style:"C", sLabel:"協力型",            cost:3000, cText:"¥3,000",      support:"協力型",               area:"south",   aText:"南部 (海神)",       car:"× なし",          surface:"西海神小",         vibe:"アットホーム",           path:"海神中",            note:"少人数制で手厚い指導。補欠を作らず全員を試合に出す方針。" },
+    { name:"行田西FC",           style:"C", sLabel:"ボランティア",      cost:3000, cText:"¥3,000",      support:"ボランティア",         area:"south",   aText:"南部 (行田)",       car:"○ あり",          surface:"行田西小",         vibe:"全員出場",               path:"行田中",            note:"勝つことよりも「全員が平等にプレーする時間」を厳守する優しいチーム。" },
+    { name:"坪井FC",             style:"C", sLabel:"当番持ち回り",      cost:3000, cText:"¥3,000",      support:"当番持ち回り",         area:"north",   aText:"北部 (坪井)",       car:"○ あり",          surface:"坪井小",           vibe:"新興エリアの活気",       path:"坪井中",            note:"比較的新しい街のチーム。パパコーチの参加率が非常に高い。" },
+    { name:"大穴JSC",            style:"C", sLabel:"協力型",            cost:3000, cText:"¥3,000",      support:"協力型",               area:"north",   aText:"北部 (大穴)",       car:"△ 制限あり",      surface:"大穴小",           vibe:"地域連携",               path:"大穴中",            note:"昔ながらの温かい指導。地域の見守り活動の一環としても機能。" },
+    { name:"三山FC",             style:"C", sLabel:"当番あり",          cost:3000, cText:"¥3,000",      support:"当番あり",             area:"north",   aText:"北部 (三山)",       car:"× なし",          surface:"三山小",           vibe:"基礎体力向上",           path:"三山中",            note:"ラダートレーニングなど、走る基盤作りを徹底して行う堅実な指導。" },
+    { name:"田喜野井FC",         style:"C", sLabel:"協力型",            cost:3000, cText:"¥3,000",      support:"協力型",               area:"north",   aText:"北部 (田喜野井)",   car:"× なし",          surface:"田喜野井小",       vibe:"楽しむサッカー",         path:"三田中",            note:"田喜野井周辺のローカルチーム。和気あいあいとした雰囲気が魅力。" },
+    { name:"八木が谷北FC",       style:"C",         sLabel:"当番持ち回り",      cost:3000, cText:"¥3,000",      support:"当番持ち回り",         area:"north",   aText:"北部 (八木が谷)",   car:"△ 制限あり",      surface:"八木が谷北小",     vibe:"仲良く元気よく",         path:"八木が谷中",        note:"勝敗に固執せず、子供たちが自発的に考える声掛けを行う。" },
+    { name:"咲が丘FC",           style:"C", sLabel:"保護者協力",        cost:3000, cText:"¥3,000",      support:"保護者協力",           area:"north",   aText:"北部 (咲が丘)",     car:"× なし",          surface:"咲が丘小",         vibe:"のびのび育成",           path:"八木が谷中",        note:"のんびりとした環境で、プレッシャーなくボールを蹴れる。" },
+    { name:"JSC CHIBA",          style:"B", sLabel:"負担少なめ",        cost:8500, cText:"¥8,500〜",    support:"保護者負担少なめ",     area:"north",   aText:"北部 (専用G)",      car:"○ あり",          surface:"専用グラウンド",   vibe:"ドリブル特化",           path:"強豪JY・J下部",     note:"「ドリブル塾」とも呼ばれるほどの極端な技術特化型。熱狂的なファンが多い。" }
+];
+
+/* ── Helpers ─────────────────────────────────────────── */
+const styleLabelClass = { A: "style-label-a", B: "style-label-b", C: "style-label-c" };
+
+function buildRow(t) {
+    const tr = document.createElement("tr");
+
+    /* Col 1: Team & Style */
+    const tdTeam = document.createElement("td");
+    tdTeam.className = "col-team";
+    tdTeam.innerHTML = `
+        <span class="cell-name">${t.name}</span>
+        <span class="style-label ${styleLabelClass[t.style]}">${t.sLabel}</span>
+    `;
+
+    /* Col 2: Main Spec */
+    const tdMain = document.createElement("td");
+    tdMain.innerHTML = `
+        <div class="spec-grid">
+            <span class="spec-key">月謝</span>
+            <span class="spec-val highlight">${t.cText}</span>
+            <span class="spec-key">当番</span>
+            <span class="spec-val">${t.support}</span>
+            <span class="spec-key">方針</span>
+            <span class="spec-val">${t.vibe}</span>
+        </div>
+    `;
+
+    /* Col 3: Sub Spec */
+    const tdSub = document.createElement("td");
+    tdSub.innerHTML = `
+        <div class="spec-grid">
+            <span class="spec-key">エリア</span>
+            <span class="spec-val">${t.aText}</span>
+            <span class="spec-key">駐車</span>
+            <span class="spec-val">${t.car}</span>
+            <span class="spec-key">地面</span>
+            <span class="spec-val">${t.surface}</span>
+            <span class="spec-key">進路</span>
+            <span class="spec-val">${t.path}</span>
+        </div>
+    `;
+
+    /* Col 4: Review */
+    const tdReview = document.createElement("td");
+    tdReview.innerHTML = `<div class="cell-review">${t.note}</div>`;
+
+    tr.append(tdTeam, tdMain, tdSub, tdReview);
+    return tr;
+}
+
+/* ── Render ──────────────────────────────────────────── */
+function renderTable() {
+    const fStyle = document.querySelector("#style-filter .active").dataset.val;
+    const fCost  = document.querySelector("#cost-filter .active").dataset.val;
+    const fArea  = document.querySelector("#area-filter .active").dataset.val;
+
+    const filtered = teams.filter(t => {
+        const mS = fStyle === "all" || t.style === fStyle;
+        const mC = fCost  === "all"
+                || (fCost === "low"  && t.cost <= 5000)
+                || (fCost === "high" && t.cost >= 8000);
+        const mA = fArea  === "all" || t.area === fArea;
+        return mS && mC && mA;
+    });
+
+    const tbody = document.getElementById("table-body");
+    const fragment = document.createDocumentFragment();
+
+    if (filtered.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td colspan="4">
+                <div class="empty-state">
+                    <div class="empty-state__icon">🔍</div>
+                    条件に合うチームが見つかりませんでした。<br>フィルターを変えてお試しください。
+                </div>
+            </td>
+        `;
+        fragment.appendChild(tr);
+    } else {
+        filtered.forEach(t => fragment.appendChild(buildRow(t)));
+    }
+
+    tbody.replaceChildren(fragment);
+    document.getElementById("count-display").textContent = `${filtered.length} TEAMS`;
+}
+
+/* ── Filter Event Delegation ─────────────────────────── */
+["style-filter", "cost-filter", "area-filter"].forEach(id => {
+    document.getElementById(id).addEventListener("click", e => {
+        const btn = e.target.closest(".f-btn");
+        if (!btn) return;
+        document.querySelectorAll(`#${id} .f-btn`).forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderTable();
+    });
+});
+
+/* ── Init ────────────────────────────────────────────── */
+renderTable();
+</script>
+
+</body>
+</html>
