@@ -11,8 +11,9 @@
             --card-bg: #ffffff; --text-main: #2c3e50; --text-sub: #95a5a6;
             --yellow: #f1c40f; --green: #2ecc71; --blue: #3498db;
         }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; padding: 0 10px; }
         header { padding: 15px; background: var(--card-bg); border-bottom: 1px solid rgba(0,0,0,0.05); text-align: center; }
         header h1 { font-size: 1rem; margin: 0; font-weight: 900; color: var(--accent); letter-spacing: 1px; }
 
@@ -30,8 +31,8 @@
         .pitch {
             width: 100%;
             /* スマホで縦方向が不足しがちなので、aspect-ratioに加えて最低高さも持たせる */
-            aspect-ratio: 4/3;
-            min-height: 280px;
+            aspect-ratio: 3/4;
+            min-height: 360px;
             background:
                 linear-gradient(180deg, #1b5e20 0%, #2e7d32 100%),
                 /* ハーフウェーライン */
@@ -44,11 +45,25 @@
             box-shadow: inset 0 0 40px rgba(0,0,0,0.3);
             margin-top: 10px;
         }
-        .player-icon { position: absolute; width: 44px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; transition: 0.3s; }
-        .icon-circle { width: 30px; height: 30px; background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 12px; font-weight: 800; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        /* ピッチ上は詰まりやすいので、名前ラベルは非表示（下のON PITCH/BENCHで確認） */
-        .icon-name { display: none; font-size: 9px; color: #fff; background: rgba(0,0,0,0.7); padding: 2px 4px; border-radius: 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .player-icon.empty-pos .icon-name { display: inline-block; font-size: 8px; padding: 1px 3px; border-radius: 3px; }
+        .player-icon { position: absolute; width: 48px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; transition: 0.3s; }
+        .icon-circle { width: 32px; height: 32px; background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 12px; font-weight: 800; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        /* ピッチ上：選手名 +（ゴール数が0でなければ）表示 */
+        .icon-name {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            font-size: 8px;
+            color: #fff;
+            background: rgba(0,0,0,0.65);
+            padding: 1px 4px;
+            border-radius: 6px;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .player-name { max-width: 38px; overflow: hidden; text-overflow: ellipsis; }
+        .goal-mini { background: rgba(255,255,255,0.9); color: #e31b23; font-weight: 900; border-radius: 6px; padding: 0 4px; font-size: 9px; line-height: 16px; }
 
         /* 選手チップ */
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
@@ -63,9 +78,15 @@
         textarea.memo-box { width: 100%; height: 60px; padding: 10px; border: 1px solid #edf2f7; border-radius: 12px; font-size: 12px; box-sizing: border-box; background: #f8fafc; outline: none; resize: none; }
         
         .quick-chip { background: #f8fafc; border: 1px solid #ddd; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 900; color: var(--text-main); cursor: pointer; display: inline-block; margin: 0 5px 5px 0; }
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 450px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px; display: flex; padding: 12px 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; }
+        /* 横ズレしやすい `left: 50% + transform` をやめて、左右を固定 */
+        .bottom-nav { position: fixed; bottom: 20px; left: 10px; right: 10px; transform: none; width: auto; max-width: none; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px; display: flex; padding: 12px 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; font-size: 10px; color: var(--text-sub); font-weight: 900; text-transform: uppercase; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
+
+        /* スコア操作（＋/－） */
+        .score-ctrl { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .score-btn { width: 28px; height: 28px; border-radius: 10px; border: none; background: rgba(255,255,255,0.18); color: #fff; font-weight: 900; cursor: pointer; }
+        .score-value { min-width: 42px; text-align: center; cursor: pointer; background:rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 10px; font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; }
 
         /* モーダル */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 2000; align-items: flex-end; justify-content: center; }
@@ -124,9 +145,23 @@
                         <button class="btn-half" onclick="endPeriod()" style="background:rgba(255,255,255,0.2);">END HALF</button>
                     </div>
                     <div class="score-board">
-                        <div style="text-align:center;"><div class="team-name-mini" id="myTeamDisplay">TEAM</div><div id="scoreOwn" onclick="addOwnScore()" style="cursor:pointer; background:rgba(0,0,0,0.2); padding:0 15px; border-radius:8px;">0</div></div>
+                        <div style="text-align:center;">
+                            <div class="team-name-mini" id="myTeamDisplay">TEAM</div>
+                            <div class="score-ctrl">
+                                <button class="score-btn" onclick="removeOwnScore()" aria-label="own goals -">-</button>
+                                <div id="scoreOwn" class="score-value" onclick="addOwnScore()">0</div>
+                                <button class="score-btn" onclick="addOwnScore()" aria-label="own goals +">+</button>
+                            </div>
+                        </div>
                         <div style="font-size:20px; color:rgba(255,255,255,0.5);">VS</div>
-                        <div style="text-align:center;"><div class="team-name-mini" id="oppDisplay">OPP</div><div id="scoreOpp" onclick="addOppScore()" style="cursor:pointer; background:rgba(0,0,0,0.2); padding:0 15px; border-radius:8px;">0</div></div>
+                        <div style="text-align:center;">
+                            <div class="team-name-mini" id="oppDisplay">OPP</div>
+                            <div class="score-ctrl">
+                                <button class="score-btn" onclick="removeOppScore()" aria-label="opp goals -">-</button>
+                                <div id="scoreOpp" class="score-value" onclick="addOppScore()">0</div>
+                                <button class="score-btn" onclick="addOppScore()" aria-label="opp goals +">+</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <details open><summary>FORMATION</summary><div class="pitch" id="livePitchArea"></div></details>
@@ -301,6 +336,8 @@
         const halfMinutes = parseInt(document.getElementById('halfMinutes').value, 10);
         live.timerLeft = (Number.isInteger(halfMinutes) && halfMinutes > 0) ? halfMinutes * 60 : 15 * 60;
         live.score = { own: 0, opp: 0 };
+        live.playerGoals = {}; // playerId -> goals
+        live.lastScorerId = null; // last goal scorer (own team)
         live.events = [];
         // フォーメーションの位置順に、マスター登録済み選手を自動配置する
         const formation = formations[live.formation] || formations["3-3-1"];
@@ -336,7 +373,9 @@
 
     function updateUI() {
         document.getElementById('timerText').innerText = formatTime(live.timerLeft);
-        document.getElementById('scoreOwn').innerText = live.score.own;
+        const ownScore = Object.values(live.playerGoals || {}).reduce((sum, v) => sum + (v || 0), 0);
+        live.score.own = ownScore;
+        document.getElementById('scoreOwn').innerText = ownScore;
         document.getElementById('scoreOpp').innerText = live.score.opp;
         
         // ピッチ描画
@@ -344,26 +383,83 @@
         document.getElementById('livePitchArea').innerHTML = f.map(pos => {
             const pId = live.pitchPositions[pos.id];
             const p = db.players.find(x => x.id === pId);
-            return p ? 
-                `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openOnPitchAction('${p.id}')"><div class="icon-circle">${p.num}</div><div class="icon-name">${p.name}</div></div>` :
-                `<div class="player-icon empty-pos" style="top:${pos.t}; left:${pos.l};" onclick="openBenchSelector('${pos.id}')"><div class="icon-circle" style="background:rgba(255,255,255,0.2);">+</div><div class="icon-name">${pos.label}</div></div>`;
+            if (!p) {
+                return `<div class="player-icon empty-pos" style="top:${pos.t}; left:${pos.l};" onclick="openBenchSelector('${pos.id}')"><div class="icon-circle" style="background:rgba(255,255,255,0.2);">+</div><div class="icon-name">${pos.label}</div></div>`;
+            }
+
+            const g = (live.playerGoals && live.playerGoals[p.id]) ? live.playerGoals[p.id] : 0;
+            const goalHtml = g > 0 ? `<span class="goal-mini">${g}</span>` : '';
+
+            return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openOnPitchAction('${p.id}')"><div class="icon-circle">${p.num}</div><div class="icon-name"><span class="player-name">${p.name}</span>${goalHtml}</div></div>`;
         }).join('');
 
         // リスト描画
         const activeIds = Object.values(live.pitchPositions);
-        document.getElementById('onPitchGrid').innerHTML = db.players.filter(p => activeIds.includes(p.id)).map(p => `<div class="player-chip on-pitch" onclick="openOnPitchAction('${p.id}')">${p.name}</div>`).join('');
-        document.getElementById('benchGrid').innerHTML = db.players.filter(p => !activeIds.includes(p.id)).map(p => `<div class="player-chip bench" onclick="openPositionSelector('${p.id}')">${p.name}</div>`).join('');
+        document.getElementById('onPitchGrid').innerHTML = db.players
+            .filter(p => activeIds.includes(p.id))
+            .map(p => {
+                const g = (live.playerGoals && live.playerGoals[p.id]) ? live.playerGoals[p.id] : 0;
+                return `<div class="player-chip on-pitch" onclick="openOnPitchAction('${p.id}')">${p.name}${g > 0 ? ` (${g})` : ''}</div>`;
+            })
+            .join('');
+
+        document.getElementById('benchGrid').innerHTML = db.players
+            .filter(p => !activeIds.includes(p.id))
+            .map(p => {
+                const g = (live.playerGoals && live.playerGoals[p.id]) ? live.playerGoals[p.id] : 0;
+                return `<div class="player-chip bench" onclick="openPositionSelector('${p.id}')">${p.name}${g > 0 ? ` (${g})` : ''}</div>`;
+            })
+            .join('');
     }
 
-    function addOwnScore() {
-        live.score.own += 1;
-        addEvent('自チームゴール');
+    function isOnPitch(pId) {
+        return Object.values(live.pitchPositions || {}).includes(pId);
+    }
+
+    function getDefaultScorerId() {
+        if (live.lastScorerId && isOnPitch(live.lastScorerId)) return live.lastScorerId;
+        return Object.values(live.pitchPositions || {})[0] || null;
+    }
+
+    function addOwnGoalForPlayer(pId) {
+        if (!pId) return;
+        if (!live.playerGoals) live.playerGoals = {};
+        live.lastScorerId = pId;
+        live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1;
+
+        const p = db.players.find(x => x.id === pId);
+        addEvent(p ? `${p.num} ${p.name} GOAL` : 'GOAL');
         updateUI();
     }
 
+    function removeOwnGoalForPlayer(pId) {
+        if (!pId) return;
+        if (!live.playerGoals) return;
+        const current = live.playerGoals[pId] || 0;
+        if (current <= 0) return;
+
+        live.playerGoals[pId] = current - 1;
+        if (live.playerGoals[pId] <= 0) delete live.playerGoals[pId];
+
+        const p = db.players.find(x => x.id === pId);
+        addEvent(p ? `${p.num} ${p.name} GOAL REMOVED` : 'GOAL REMOVED');
+        updateUI();
+    }
+
+    // スコアボタン（＋/－）用：最後に選ばれた選手（ピッチ上にいる場合）へ加算/減算
+    function addOwnScore() { addOwnGoalForPlayer(getDefaultScorerId()); }
+    function removeOwnScore() { removeOwnGoalForPlayer(getDefaultScorerId()); }
+
     function addOppScore() {
         live.score.opp += 1;
-        addEvent('相手チームゴール');
+        addEvent('OPP GOAL');
+        updateUI();
+    }
+
+    function removeOppScore() {
+        if (live.score.opp <= 0) return;
+        live.score.opp -= 1;
+        addEvent('OPP GOAL REMOVED');
         updateUI();
     }
 
@@ -411,10 +507,13 @@
         const p = db.players.find(x => x.id === pId);
         const posId = Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === pId);
         const safePlayerName = p ? `${p.num} ${p.name}` : 'PLAYER';
+        const g = (live.playerGoals && live.playerGoals[pId]) ? live.playerGoals[pId] : 0;
+        live.lastScorerId = pId; // スコアボタン(+/-)の対象にもする
 
         // ここで点数やベンチ移動ができるようにする（scoreボタン操作の代替にもなる）
         const listHtml = `
-            <div class="action-btn" onclick="addOwnScore(); closeModals();">GOAL!</div>
+            <div class="action-btn" onclick="addOwnGoalForPlayer('${pId}'); closeModals();">GOAL!</div>
+            ${g > 0 ? `<div class="action-btn" onclick="removeOwnGoalForPlayer('${pId}'); closeModals();">GOAL-</div>` : ''}
             <div class="action-btn" onclick="addOppScore(); closeModals();">OPP GOAL</div>
             ${posId ? `<div class="action-btn" onclick="delete live.pitchPositions['${posId}']; closeModals(); updateUI();">BENCH OUT</div>` : ''}
         `;
