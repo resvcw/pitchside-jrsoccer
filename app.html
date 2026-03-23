@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v8.6 Full Cloud</title>
+    <title>PitchSide Pro v8.7 Full Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -65,7 +65,7 @@
 
 <div class="container">
     <div id="loginSection" style="padding:100px 30px; text-align:center;">
-        <h1 style="color:var(--accent); font-size:2rem; font-weight:900;">PITCHSIDE v8.6</h1>
+        <h1 style="color:var(--accent); font-size:2rem; font-weight:900;">PITCHSIDE v8.7</h1>
         <input type="password" id="passcode" placeholder="パスコード" style="text-align:center;">
         <button onclick="checkPass()" style="background:var(--accent); margin-top:10px;">ログイン</button>
     </div>
@@ -75,13 +75,13 @@
             <div id="setupScreen">
                 <div class="card">
                     <h2 style="font-size:16px; margin:0 0 15px 0;">試合設定</h2>
-                    <label style="font-size:11px; font-weight:bold;">対戦相手</label>
+                    <label style="font-size:11px; font-weight:bold;">対戦相手を選択</label>
                     <div id="quickOppList"></div>
-                    <input type="text" id="oppName" placeholder="チーム名">
+                    <input type="text" id="oppName" placeholder="チーム名を入力">
                     
-                    <label style="font-size:11px; font-weight:bold; margin-top:10px; display:block;">会場</label>
+                    <label style="font-size:11px; font-weight:bold; margin-top:10px; display:block;">会場を選択</label>
                     <div id="quickVenueList"></div>
-                    <input type="text" id="venueName" placeholder="会場名">
+                    <input type="text" id="venueName" placeholder="会場名を入力">
                     
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <div style="flex:1;"><label style="font-size:11px; font-weight:bold;">ハーフ(分)</label><input type="number" id="halfMinutes" value="15" style="text-align:center;"></div>
@@ -144,11 +144,17 @@
             <div class="card">
                 <label style="font-size:11px; font-weight:bold;">自チーム名</label>
                 <input type="text" id="myTeamInput" onchange="saveTeamName()">
+                
                 <label style="font-size:11px; font-weight:bold; margin-top:15px; display:block;">所属選手登録</label>
                 <div style="display:flex; gap:5px;"><input type="number" id="pInNum" placeholder="No." style="width:70px;"><input type="text" id="pInName" placeholder="名前"><button onclick="addMaster('players')" style="width:50px; padding:0;">＋</button></div>
                 <div id="pMasterList" style="margin-top:10px;"></div>
-                <label style="font-size:11px; font-weight:bold; margin-top:15px; display:block;">対戦相手・会場（自動追加されます）</label>
+
+                <label style="font-size:11px; font-weight:bold; margin-top:20px; display:block;">相手チーム登録</label>
+                <div style="display:flex; gap:5px;"><input type="text" id="oppInName" placeholder="チーム名"><button onclick="addMaster('opps')" style="width:50px; padding:0;">＋</button></div>
                 <div id="oppMasterList" style="margin-top:10px;"></div>
+
+                <label style="font-size:11px; font-weight:bold; margin-top:20px; display:block;">会場登録</label>
+                <div style="display:flex; gap:5px;"><input type="text" id="venueInName" placeholder="会場名"><button onclick="addMaster('venues')" style="width:50px; padding:0;">＋</button></div>
                 <div id="venueMasterList" style="margin-top:10px;"></div>
             </div>
         </div>
@@ -200,25 +206,31 @@
         }
     }
 
+    // 試合開始
     async function startMatch() {
         const opp = document.getElementById('oppName').value.trim();
         const venue = document.getElementById('venueName').value.trim();
         if(!opp || !venue) { alert("相手チームと会場を入力してください"); return; }
 
-        // マスター自動登録
+        // 自動追加ロジック
         let changed = false;
         if(!db.opps.includes(opp)) { db.opps.push(opp); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); changed = true; }
         if(!db.venues.includes(venue)) { db.venues.push(venue); localStorage.setItem('ps_venues_master', JSON.stringify(db.venues)); changed = true; }
         if(changed) { refreshSettingsUI(); updateQuickLists(); }
 
-        // クラウド登録
-        const { data, error } = await supabaseClient.from('match_reports').insert([{
-            my_team: db.myTeam, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始", memo: ""
-        }]).select();
+        // クラウド初期登録 (エラーハンドリング強化)
+        try {
+            const { data, error } = await supabaseClient.from('match_reports').insert([{
+                my_team: db.myTeam, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始", memo: ""
+            }]).select();
 
-        if(error) { alert("同期開始エラー"); return; }
+            if(error) throw error;
+            live.currentId = data[0].id;
+        } catch (e) {
+            alert("同期開始エラー: Supabaseの設定を確認してください。 " + e.message);
+            return;
+        }
         
-        live.currentId = data[0].id;
         live.formation = document.getElementById('formationSelect').value;
         live.timerLeft = parseInt(document.getElementById('halfMinutes').value, 10) * 60;
         live.score = { own: 0, opp: 0 };
@@ -226,7 +238,6 @@
         live.events = [];
         live.memo = "";
 
-        // 初期選手配置
         const f = formations[live.formation];
         const sorted = [...db.players].sort((a,b) => Number(a.num) - Number(b.num));
         live.pitchPositions = {};
@@ -278,8 +289,8 @@
             const onIds = Object.values(live.pitchPositions);
             const listHtml = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="recordGoal('${p.id}')">${p.num} ${p.name}</div>`).join('');
             showActionModal("得点者を選択", listHtml || `<div class="action-btn" onclick="live.score.own++; addEvent('自チーム得点'); syncToCloud(); updateUI(); closeModals();">不明・その他</div>`);
-        } else {
-            if(live.score.own > 0) { live.score.own--; addEvent("得点取消"); syncToCloud(); updateUI(); }
+        } else if(live.score.own > 0) {
+            live.score.own--; addEvent("得点取消"); syncToCloud(); updateUI();
         }
     }
     function recordGoal(pId) {
@@ -303,7 +314,7 @@
     function openPositionSelector(pId) {
         const f = formations[live.formation];
         const listHtml = f.filter(pos => !live.pitchPositions[pos.id]).map(pos => `<div class="action-btn" onclick="live.pitchPositions['${pos.id}']='${pId}'; syncToCloud(); updateUI(); closeModals();">${pos.label}へ</div>`).join('');
-        showActionModal("どこに入れますか？", listHtml || "空きがありません");
+        showActionModal("配置先", listHtml || "空きなし");
     }
 
     async function fetchReports() {
@@ -317,9 +328,9 @@
                         <div style="font-size:10px; color:#999;">会場: ${r.venue}</div>
                     </summary>
                     <div class="report-content">
-                        <div style="font-weight:bold; margin-top:10px;">タイムライン:</div><div style="white-space:pre-wrap; color:#555; margin-bottom:10px;">${r.detail}</div>
+                        <div style="font-weight:bold; margin-top:10px;">経過:</div><div style="white-space:pre-wrap; color:#555; margin-bottom:10px;">${r.detail}</div>
                         <div style="font-weight:bold;">メモ:</div><div style="white-space:pre-wrap; color:#555;">${r.memo}</div>
-                        <button class="del-row-btn" onclick="deleteReport('${r.id}')">このレポートを削除</button>
+                        <button class="del-row-btn" onclick="deleteReport('${r.id}')">削除する</button>
                     </div>
                 </details>
             `).join('');
@@ -347,11 +358,29 @@
         if(tabId === 'tabHistory') fetchReports();
     }
     function addMaster(type) {
-        const num = document.getElementById('pInNum').value; const name = document.getElementById('pInName').value.trim();
-        if(num && name) { db.players.push({ id: Date.now().toString(), num, name }); localStorage.setItem('ps_players_v8', JSON.stringify(db.players)); }
-        document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = ''; refreshSettingsUI();
+        if(type==='players') {
+            const num = document.getElementById('pInNum').value; const name = document.getElementById('pInName').value.trim();
+            if(num && name) { db.players.push({ id: Date.now().toString(), num, name }); localStorage.setItem('ps_players_v8', JSON.stringify(db.players)); }
+            document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = '';
+        } else if(type==='opps') {
+            const name = document.getElementById('oppInName').value.trim();
+            if(name && !db.opps.includes(name)) { db.opps.push(name); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); }
+            document.getElementById('oppInName').value = '';
+        } else if(type==='venues') {
+            const name = document.getElementById('venueInName').value.trim();
+            if(name && !db.venues.includes(name)) { db.venues.push(name); localStorage.setItem('ps_venues_master', JSON.stringify(db.venues)); }
+            document.getElementById('venueInName').value = '';
+        }
+        refreshSettingsUI(); updateQuickLists();
     }
-    function deleteMaster(type, index) { if(confirm("削除しますか？")) { db[type].splice(index, 1); localStorage.setItem('ps_'+type+'_master', JSON.stringify(db[type])); refreshSettingsUI(); updateQuickLists(); } }
+    function deleteMaster(type, index) { 
+        if(confirm("削除しますか？")) { 
+            db[type].splice(index, 1); 
+            const key = type === 'players' ? 'ps_players_v8' : (type === 'opps' ? 'ps_opps_master' : 'ps_venues_master');
+            localStorage.setItem(key, JSON.stringify(db[type])); 
+            refreshSettingsUI(); updateQuickLists(); 
+        } 
+    }
     function refreshSettingsUI() {
         document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del">${p.num} ${p.name} <span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o,i) => `<div class="chip-del">${o} <span class="del-btn" onclick="deleteMaster('opps', ${i})">×</span></div>`).join('');
