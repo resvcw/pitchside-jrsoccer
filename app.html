@@ -209,7 +209,8 @@
     // --- Supabase 初期設定 ---
     const SUPABASE_URL = 'https://gdzdyykladyccrcvdtbh.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_TWz1alSKy36qDAGtmZ3DFg_7N7sdmBz'; // 【重要】先ほどコピーした anon (public) key をここに貼り付けてください
-    const supabase = libsupabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // CDNのsupabase-jsはグローバル`supabase`を提供する想定
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let db = {
         myTeam: localStorage.getItem('ps_myteam') || "TEAM",
@@ -290,7 +291,7 @@
 
     // --- クラウド保存・取得ロジック ---
     async function fetchReports() {
-        const { data, error } = await supabase.from('match_reports').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient.from('match_reports').select('*').order('created_at', { ascending: false });
         if (data) {
             const list = document.getElementById('historyList');
             list.innerHTML = data.map((r, i) => `
@@ -308,7 +309,7 @@
     }
 
     async function saveReportToCloud(reportObj) {
-        const { error } = await supabase.from('match_reports').insert([reportObj]);
+        const { error } = await supabaseClient.from('match_reports').insert([reportObj]);
         if (error) alert("Cloud Save Error: " + error.message);
     }
 
