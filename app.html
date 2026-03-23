@@ -6,97 +6,78 @@
     <title>PITCHSIDE CLOUD</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --pitch-green: #065f46; --ui-navy: #0f172a; --accent-blue: #38bdf8; --text-white: #f8fafc; }
-        body { margin: 0; background-color: var(--ui-navy); color: var(--text-white); font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .tab-content { display: none; padding: 15px; padding-bottom: 90px; height: 100vh; box-sizing: border-box; overflow-y: auto; }
+        /* リバプール・レッドを基調としたデザインに復元 */
+        :root { --lfc-red: #e31b23; --pitch-green: #065f46; --ui-dark: #111111; --text-white: #ffffff; }
+        body { margin: 0; background-color: var(--ui-dark); color: var(--text-white); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        .tab-content { display: none; padding: 15px; padding-bottom: 90px; height: 100vh; box-sizing: border-box; }
         .active { display: block; }
         
-        /* 緑のピッチデザイン復元 */
-        .pitch { position: relative; width: 100%; aspect-ratio: 2/3; background-color: var(--pitch-green); border: 2px solid rgba(255,255,255,0.8); border-radius: 8px; margin: 10px 0; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .center-line { position: absolute; top: 50%; width: 100%; height: 2px; background: rgba(255,255,255,0.5); }
-        .center-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
+        /* ログイン画面（赤ベース） */
+        #loginSection { background: linear-gradient(135deg, var(--lfc-red) 0%, #9e1217 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .login-card { background: rgba(0,0,0,0.2); padding: 30px; border-radius: 15px; backdrop-filter: blur(5px); width: 85%; max-width: 320px; border: 1px solid rgba(255,255,255,0.2); }
 
-        /* 入力フォーム類 */
-        input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--accent-blue); }
-        .btn { background: var(--accent-blue); color: var(--ui-navy); border: none; padding: 15px; border-radius: 8px; font-weight: 900; width: 100%; cursor: pointer; transition: opacity 0.2s; }
-        .btn:active { opacity: 0.7; }
+        /* 入力エリア */
+        input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 5px; border: none; background: white; color: #333; box-sizing: border-box; font-size: 16px; }
+        .btn { background: #f6eb61; color: #000; border: none; padding: 15px; border-radius: 5px; font-weight: 900; width: 100%; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* 下部ナビゲーション */
-        nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #1e293b; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #334155; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { color: #64748b; font-size: 11px; text-align: center; text-decoration: none; flex: 1; padding: 10px 0; }
-        .nav-item.active-nav { color: var(--accent-blue); font-weight: bold; }
+        /* 緑のピッチ */
+        .pitch { position: relative; width: 100%; aspect-ratio: 2/3; background-color: var(--pitch-green); border: 2px solid white; border-radius: 5px; margin: 10px 0; }
+        .center-line { position: absolute; top: 50%; width: 100%; height: 2px; background: white; }
+        .center-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; border: 2px solid white; border-radius: 50%; }
+
+        nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; }
+        .nav-item { color: #888; font-size: 11px; text-align: center; flex: 1; }
+        .nav-item.active-nav { color: var(--lfc-red); font-weight: bold; }
         
-        .score-display { display: flex; justify-content: space-between; align-items: center; padding: 15px; font-size: 26px; font-weight: 900; background: rgba(255,255,255,0.05); border-radius: 8px; }
-        .card { background: #1e293b; padding: 18px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--accent-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .score-display { display: flex; justify-content: space-between; align-items: center; padding: 15px; font-size: 24px; font-weight: 900; background: #1a1a1a; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div id="loginSection" class="tab-content active" style="text-align:center; padding-top:100px;">
-    <h1 style="font-size:32px; letter-spacing:3px; margin-bottom:10px;">PITCHSIDE CLOUD</h1>
-    <p style="color:#94a3b8; margin-bottom:40px; font-size:14px;">TEAM MANAGEMENT SYSTEM</p>
-    <div style="max-width:300px; margin:0 auto;">
-        <input type="password" id="passcode" placeholder="パスコードを入力">
-        <button class="btn" onclick="checkPass()">ログイン</button>
+<div id="loginSection" class="tab-content active">
+    <div class="login-card">
+        <h1 style="font-size:24px; margin-bottom:5px;">PITCHSIDE CLOUD</h1>
+        <p style="font-size:12px; margin-bottom:25px; opacity:0.8;">YNWA - Junior Soccer Management</p>
+        <input type="password" id="passcode" placeholder="ENTER PASSCODE">
+        <button class="btn" onclick="checkPass()">LOGIN</button>
     </div>
 </div>
 
 <div id="mainUI" style="display:none;">
     <div id="live" class="tab-content active">
-        <input type="text" id="opponentName" placeholder="対戦相手名 (例: 〇〇FC)">
+        <input type="text" id="opponentName" placeholder="対戦相手を入力">
         <div class="score-display">
-            <span id="displayMyTeam" style="max-width:100px; overflow:hidden; text-overflow:ellipsis;">自チーム</span>
-            <span style="font-size:38px; color:var(--accent-blue);"><span id="hScore">0</span> - <span id="aScore">0</span></span>
+            <span id="displayMyTeam">自チーム</span>
+            <span style="font-size:32px; color:var(--lfc-red);"><span id="hScore">0</span> - <span id="aScore">0</span></span>
             <span>相手</span>
         </div>
         <div class="pitch" onclick="countGoal(event)">
             <div class="center-line"></div>
             <div class="center-circle"></div>
-            <div style="position:absolute; width:100%; text-align:center; bottom:20px; font-size:12px; color:rgba(255,255,255,0.4); pointer-events:none;">ピッチをタップして得点記録</div>
         </div>
-        <div style="display:flex; gap:12px; margin-top:10px;">
-            <button class="btn" style="background:#475569; color:white; flex:1;" onclick="resetScore()">リセット</button>
-            <button class="btn" style="background:#ef4444; color:white; flex:2;" onclick="endAndSave()">試合終了・クラウド保存</button>
-        </div>
+        <button class="btn" style="background:#cc0000; color:white; margin-top:10px;" onclick="endAndSave()">END & SAVE TO CLOUD</button>
     </div>
 
     <div id="reports" class="tab-content">
-        <h2 style="font-size:20px; margin-bottom:20px; border-bottom:1px solid #334155; padding-bottom:10px;">試合レポート一覧</h2>
-        <div id="historyList">データを読み込み中...</div>
-    </div>
-
-    <div id="settings" class="tab-content">
-        <h2 style="font-size:20px; margin-bottom:20px;">アプリ設定</h2>
-        <div class="card">
-            <label style="font-size:13px; color:#94a3b8; display:block; margin-bottom:8px;">自チーム名設定</label>
-            <input type="text" id="myTeamSetting" placeholder="チーム名を入力" onchange="saveSettings()">
-            <p style="font-size:11px; color:#64748b; margin:0;">※ここで設定した名前がLIVE画面に反映されます</p>
-        </div>
+        <h2 style="border-bottom:2px solid var(--lfc-red); padding-bottom:5px;">MATCH REPORTS</h2>
+        <div id="historyList">Loading...</div>
     </div>
 
     <nav>
         <div class="nav-item active-nav" onclick="showTab('live', this)">LIVE</div>
         <div class="nav-item" onclick="showTab('reports', this)">REPORTS</div>
-        <div class="nav-item" onclick="showTab('settings', this)">SETTINGS</div>
     </nav>
 </div>
 
 <script>
-    // --- クラウド接続設定（工藤さんのキーを組み込み済み） ---
     const SUPABASE_URL = 'https://gdzdyykladyccrcvdtbh.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkemR5eWtsYWR5Y2NyY3ZkdGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNDU3MjgsImV4cCI6MjA4OTgyMTcyOH0.FKqWkB-yHehST6A-IRUv3r0-f9nR6SynOqLTp2_r1Dw'; 
     let _supabase;
-    let homeScore = 0; let awayScore = 0;
+    let homeScore = 0;
 
     window.onload = () => {
         if (typeof supabase !== 'undefined') {
             _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
-        const savedTeam = localStorage.getItem('myTeamName');
-        if(savedTeam) {
-            document.getElementById('myTeamSetting').value = savedTeam;
-            document.getElementById('displayMyTeam').innerText = savedTeam;
         }
     };
 
@@ -104,8 +85,7 @@
         if(document.getElementById('passcode').value === "2026kickoff") {
             document.getElementById('loginSection').classList.remove('active');
             document.getElementById('mainUI').style.display = 'block';
-            showTab('live', document.querySelector('.nav-item'));
-        } else { alert("パスコードが正しくありません"); }
+        } else { alert("WRONG PASSCODE"); }
     }
 
     function showTab(id, el) {
@@ -116,59 +96,28 @@
         if(id === 'reports') fetchReports();
     }
 
-    function countGoal(e) {
+    function countGoal() {
         homeScore++;
         document.getElementById('hScore').innerText = homeScore;
-        // タップ時に軽いバイブレーション（対応端末のみ）
-        if(navigator.vibrate) navigator.vibrate(50);
-    }
-
-    function resetScore() {
-        if(confirm("スコアをリセットしますか？")) {
-            homeScore = 0; awayScore = 0;
-            document.getElementById('hScore').innerText = "0";
-        }
     }
 
     async function endAndSave() {
-        const opponent = document.getElementById('opponentName').value || "対戦相手未設定";
-        if(!confirm(opponent + " 戦のデータをクラウドに保存しますか？")) return;
-
-        const report = {
-            opponent: opponent,
-            score: `${homeScore} - ${awayScore}`,
-            created_at: new Date()
-        };
-
-        const { error } = await _supabase.from('match_reports').insert([report]);
-        if (error) {
-            alert("クラウド保存失敗: " + error.message);
-        } else {
-            alert("保存完了！コーチ全員の画面に反映されます。");
-            homeScore = 0; document.getElementById('hScore').innerText = "0";
-            document.getElementById('opponentName').value = "";
-        }
+        const opponent = document.getElementById('opponentName').value || "Unknown";
+        if(!confirm("Save record against " + opponent + "?")) return;
+        const { error } = await _supabase.from('match_reports').insert([{ opponent: opponent, score: homeScore + " - 0", created_at: new Date() }]);
+        if (error) alert(error.message); else alert("SAVED!");
     }
 
     async function fetchReports() {
-        const { data, error } = await _supabase.from('match_reports').select('*').order('created_at', { ascending: false });
+        const { data } = await _supabase.from('match_reports').select('*').order('created_at', { ascending: false });
         if (data) {
             document.getElementById('historyList').innerHTML = data.map(r => `
-                <div class="card">
-                    <div style="font-size:13px; color:var(--accent-blue); font-weight:bold; margin-bottom:5px;">vs ${r.opponent}</div>
-                    <div style="font-size:28px; font-weight:900;">${r.score}</div>
-                    <div style="font-size:11px; color:#94a3b8; margin-top:8px;">${new Date(r.created_at).toLocaleString('ja-JP')} 記録済</div>
+                <div style="background:#222; padding:15px; border-radius:5px; margin-bottom:10px; border-left:4px solid var(--lfc-red);">
+                    <div style="color:var(--lfc-red); font-weight:bold;">vs ${r.opponent}</div>
+                    <div style="font-size:24px;">${r.score}</div>
                 </div>
             `).join('');
-        } else if (error) {
-            document.getElementById('historyList').innerText = "データの取得に失敗しました。";
         }
-    }
-
-    function saveSettings() {
-        const name = document.getElementById('myTeamSetting').value;
-        localStorage.setItem('myTeamName', name);
-        document.getElementById('displayMyTeam').innerText = name;
     }
 </script>
 </body>
