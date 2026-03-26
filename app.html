@@ -3,182 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v8.8 Full Cloud</title>
+    <title>PitchSide Pro v9.0 eFootball Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --primary: #1a1a1a; --accent: #e31b23; --bg: #f2f4f6;
-            --card-bg: #ffffff; --text-main: #2c3e50; --text-sub: #95a5a6;
-            --blue: #3498db; --green: #2ecc71; --yellow: #f1c40f;
+            --primary: #0a0e14; /* eFootball Dark */
+            --accent: #00d4ff; /* Electric Blue */
+            --secondary: #ff007a; /* Neon Pink */
+            --bg: #05070a;
+            --card-bg: #151b26;
+            --text-main: #ffffff;
+            --text-sub: #8e9aaf;
+            --green: #00ffa3;
+            --yellow: #ffd700;
+            --glass: rgba(255, 255, 255, 0.05);
+            --gradient: linear-gradient(135deg, #00d4ff 0%, #ff007a 100%);
         }
         *, *::before, *::after { box-sizing: border-box; }
         html, body { overflow-x: hidden; width: 100%; position: relative; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 10px; transition: transform 0.2s cubic-bezier(0,0,0.2,1); }
-        .tab-content { display: none; padding: 10px; }
-        .tab-content.active { display: block; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
+        
+        /* eFootball Layout */
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 15px; transition: transform 0.2s cubic-bezier(0,0,0.2,1); }
+        .tab-content { display: none; padding: 15px 0; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Loading Spinner */
-        #ptr-indicator {
-            position: absolute; top: -60px; left: 0; width: 100%; height: 60px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 900; color: var(--text-sub);
-            pointer-events: none; z-index: 3000;
-        }
-        .spinner {
-            width: 24px; height: 24px; border: 3px solid rgba(0,0,0,0.1); border-top-color: var(--accent);
-            border-radius: 50%; animation: spin 0.8s linear infinite; display: none; margin-right: 10px;
-        }
+        #ptr-indicator { position: absolute; top: -60px; left: 0; width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; color: var(--accent); pointer-events: none; z-index: 3000; }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--glass); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* カード・アコーディオン */
-        .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); position: relative; }
-        .report-item { border-left: 4px solid var(--accent); margin-bottom: 10px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .report-item summary { padding: 15px; cursor: pointer; list-style: none; outline: none; }
-        .report-score { font-size: 22px; font-weight: 900; color: var(--accent); margin: 5px 0; }
+        /* eFootball Cards */
+        .card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--glass); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient); }
         
-        /* ライブUI */
-        .live-header { background: var(--primary); color: #fff; padding: 15px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
-        .timer-display { font-size: 42px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 2px; line-height: 1; }
-        .score-board { display: flex; justify-content: space-around; align-items: center; margin-top: 10px; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; }
-        .score-ctrl { display: inline-flex; align-items: center; gap: 8px; }
-        .score-btn { width: 30px; height: 30px; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: #fff; font-weight: 900; cursor: pointer; }
-        .score-val { font-size: 28px; font-weight: 900; min-width: 40px; }
+        .report-item { margin-bottom: 12px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--glass); overflow: hidden; }
+        .report-item summary { padding: 18px; cursor: pointer; list-style: none; outline: none; display: flex; flex-direction: column; }
+        .report-score { font-size: 28px; font-weight: 900; color: var(--accent); margin: 8px 0; letter-spacing: 2px; }
+        
+        /* Live Header */
+        .live-header { background: linear-gradient(180deg, #151b26 0%, #0a0e14 100%); color: #fff; padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; border: 1px solid var(--glass); }
+        .timer-display { font-size: 48px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 20px rgba(0,212,255,0.3); }
+        .score-board { display: flex; justify-content: space-around; align-items: center; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 16px; border: 1px solid var(--glass); }
+        .score-ctrl { display: inline-flex; align-items: center; gap: 12px; }
+        .score-btn { width: 34px; height: 34px; border-radius: 10px; border: none; background: var(--glass); color: #fff; font-weight: 900; cursor: pointer; transition: 0.2s; }
+        .score-btn:active { transform: scale(0.9); background: var(--accent); }
+        .score-val { font-size: 32px; font-weight: 900; min-width: 45px; }
 
-        /* ピッチと選手アイコン (ユニフォーム風) */
-        .pitch { width: 100%; aspect-ratio: 3/4; background: linear-gradient(180deg, #1b5e20 0%, #2e7d32 100%), linear-gradient(to right, transparent calc(50% - 1px), rgba(255,255,255,0.2) calc(50% - 1px), rgba(255,255,255,0.2) calc(50% + 1px), transparent calc(50% + 1px)), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0 46px, transparent 47px); position: relative; border-radius: 12px; overflow: hidden; margin-top: 10px; touch-action: none; }
-        .player-icon { position: absolute; width: 48px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; touch-action: none; transition: transform 0.1s; -webkit-user-select: none; user-select: none; }
-        .player-icon.dragging { opacity: 0.5; transform: translate(-50%, -50%) scale(1.2); z-index: 100; }
+        /* Pitch & Players */
+        .pitch { width: 100%; aspect-ratio: 3/4; background: linear-gradient(180deg, #0f1a10 0%, #070d08 100%); position: relative; border-radius: 24px; overflow: hidden; margin-top: 15px; border: 2px solid #1a2a1b; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
+        .pitch::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 10% 10%; pointer-events: none; }
         
-        /* ユニフォーム風デザイン */
+        .player-icon { position: absolute; width: 60px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; touch-action: none; transition: transform 0.1s; }
+        .player-icon.dragging { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); z-index: 100; }
+        
+        /* eFootball Jersey/Avatar Icon */
         .icon-jersey { 
-            width: 34px; height: 32px; background: var(--accent); color: #fff; 
-            border: 2px solid #fff; border-radius: 4px 4px 2px 2px; 
+            width: 44px; height: 44px; background: var(--card-bg); border: 2px solid var(--accent); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
-            margin: 0 auto; font-size: 14px; font-weight: 900; position: relative;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin: 0 auto; font-size: 18px; font-weight: 900; position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6); overflow: hidden;
         }
-        .icon-jersey::before, .icon-jersey::after {
-            content: ''; position: absolute; top: 0; width: 10px; height: 12px; background: var(--accent); border: 2px solid #fff; border-bottom: none;
-        }
-        .icon-jersey::before { left: -8px; border-radius: 4px 0 0 0; transform: skewX(-20deg); border-right: none; }
-        .icon-jersey::after { right: -8px; border-radius: 0 4px 0 0; transform: skewX(20deg); border-left: none; }
+        .player-photo { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .jersey-num-overlay { position: relative; z-index: 2; text-shadow: 0 0 5px rgba(0,0,0,0.8); color: #fff; }
 
-        .icon-name { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 8px; color: #fff; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 6px; margin-top: 4px; white-space: nowrap; }
-        .goal-mini { background: #fff; color: var(--accent); border-radius: 50%; width: 10px; height: 10px; font-size: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+        .icon-name { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: 800; color: #fff; background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 10px; margin-top: 6px; white-space: nowrap; border: 1px solid var(--glass); }
+        .goal-mini { background: var(--accent); color: #000; border-radius: 50%; width: 12px; height: 12px; font-size: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
         
-        /* カード表示 */
-        .card-mini { position: absolute; top: -5px; right: -5px; width: 10px; height: 14px; border-radius: 2px; border: 1px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        .card-yellow { background: var(--yellow); }
-        .card-red { background: var(--accent); }
-        .card-green { background: var(--green); }
+        /* Card Status */
+        .card-mini { position: absolute; top: 0; right: 0; width: 12px; height: 16px; border-radius: 2px; border: 1px solid #fff; z-index: 5; }
+        .card-yellow { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+        .card-red { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+        .card-green { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
-        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; }
-        .player-chip { background: #fff; border: 2px solid #edf2f7; border-radius: 12px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; touch-action: none; -webkit-user-select: none; user-select: none; }
-        .player-chip.on-pitch { border-color: var(--text-main); }
-        .player-chip.bench { background: #f8fafc; color: var(--text-sub); border-style: dashed; }
-        .player-chip.dragging { opacity: 0.5; transform: scale(1.1); z-index: 100; }
-        .chip-num { position: absolute; top: -5px; left: -5px; background: var(--accent); color: #fff; font-size: 8px; padding: 1px 4px; border-radius: 4px; }
+        /* Grid UI */
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; margin-top: 15px; }
+        .player-chip { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; padding: 12px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; touch-action: none; transition: 0.2s; }
+        .player-chip.on-pitch { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
+        .player-chip.bench { color: var(--text-sub); border-style: dashed; }
+        .player-chip.dragging { opacity: 0.5; transform: scale(1.05); }
+        .chip-num { position: absolute; top: -6px; left: -6px; background: var(--gradient); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 900; }
         
-        /* 共通UI (16pxズーム防止) */
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 12px; font-size: 16px; margin-bottom: 8px; font-weight: bold; outline: none; background: #fff; color: var(--text-main); }
-        button { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: 900; width: 100%; cursor: pointer; }
-        .quick-chip { background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; margin: 0 5px 8px 0; display: inline-block; cursor: pointer; }
-        .chip-del { background: #f8fafc; border: 1px solid #ddd; padding: 8px 12px; border-radius: 10px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-        .del-btn { color: #e31b23; font-weight: 900; padding: 0 10px; cursor: pointer; }
-        .edit-btn { color: var(--blue); font-weight: 900; padding: 0 10px; cursor: pointer; margin-right: 5px; }
-        .del-row-btn { background: #fee2e2; color: #ef4444; margin-top: 15px; font-size: 12px; }
+        /* Form UI */
+        input, select, textarea { width: 100%; padding: 15px; border: 1px solid var(--glass); border-radius: 16px; font-size: 16px; margin-bottom: 12px; font-weight: bold; outline: none; background: rgba(0,0,0,0.3); color: #fff; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0,212,255,0.2); }
+        button { background: var(--gradient); color: #fff; border: none; padding: 18px; border-radius: 18px; font-weight: 900; width: 100%; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+        button:active { transform: scale(0.96); filter: brightness(1.2); }
+        
+        .quick-chip { background: var(--glass); border: 1px solid var(--glass); padding: 10px 15px; border-radius: 12px; font-size: 12px; font-weight: 800; margin: 0 8px 10px 0; display: inline-block; cursor: pointer; color: var(--text-sub); }
+        .quick-chip:active { color: var(--accent); border-color: var(--accent); }
+        
+        .chip-del { background: var(--glass); border: 1px solid var(--glass); padding: 12px 18px; border-radius: 16px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .del-btn { color: var(--secondary); font-weight: 900; padding: 5px 10px; cursor: pointer; }
+        .edit-btn { color: var(--accent); font-weight: 900; padding: 5px 10px; cursor: pointer; }
 
-        .bottom-nav { position: fixed; bottom: 20px; left: 10px; right: 10px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; display: flex; padding: 12px 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; font-size: 10px; color: var(--text-sub); font-weight: 900; cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 25px; left: 15px; right: 15px; background: rgba(21, 27, 38, 0.85); backdrop-filter: blur(20px); border-radius: 25px; display: flex; padding: 15px 10px; border: 1px solid var(--glass); box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; font-size: 11px; color: var(--text-sub); font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--accent); transform: translateY(-3px); }
         
-        /* モーダル */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: flex-end; justify-content: center; }
-        .modal-content { background: #f2f4f6; width: 100%; max-width: 500px; border-radius: 25px 25px 0 0; padding: 25px 20px 40px; animation: slideUp 0.25s; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .action-btn { background: #fff; border: 2px solid #edf2f7; padding: 16px; border-radius: 14px; font-weight: 900; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        /* Modal eFootball style */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 30px; padding: 30px; border: 1px solid var(--glass); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .action-btn { background: var(--glass); border: 1px solid var(--glass); padding: 18px; border-radius: 18px; font-weight: 900; margin-bottom: 10px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; }
+        .action-btn:active { background: var(--accent); color: #000; }
+
+        /* Photo Upload */
+        .photo-input-wrap { width: 60px; height: 60px; background: var(--glass); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 1px dashed var(--accent); }
+        .photo-input-wrap input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .photo-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
     </style>
 </head>
 <body>
 
-<div id="ptr-indicator"><div class="spinner" id="ptr-spinner"></div><span id="ptr-text">引き下げて更新</span></div>
+<div id="ptr-indicator"><div class="spinner" id="ptr-spinner"></div><span id="ptr-text">PULL TO REFRESH</span></div>
 
 <div class="container" id="appContainer">
-    <div id="loginSection" style="padding:100px 30px; text-align:center;">
-        <h1 style="color:var(--accent); font-size:2rem; font-weight:900;">PITCHSIDE v8.8</h1>
-        <input type="password" id="passcode" placeholder="パスコード" style="text-align:center;">
-        <button onclick="checkPass()" style="background:var(--accent); margin-top:10px;">ログイン</button>
+    <div id="loginSection" style="padding:120px 30px; text-align:center;">
+        <div style="width:80px; height:80px; background:var(--gradient); border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 30px rgba(0,212,255,0.4);">
+            <div style="font-size:40px; font-weight:900;">P</div>
+        </div>
+        <h1 style="color:#fff; font-size:2.2rem; font-weight:900; letter-spacing:2px; margin-bottom:5px;">PITCHSIDE</h1>
+        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PRO v9.0 eFootball Edition</p>
+        <input type="password" id="passcode" placeholder="ENTER PASSCODE" style="text-align:center; letter-spacing:4px;">
+        <button onclick="checkPass()" style="margin-top:15px; font-size:16px;">LOGIN</button>
     </div>
 
     <div id="mainUI" style="display:none;">
         <div id="tabLive" class="tab-content active">
             <div id="setupScreen">
                 <div class="card">
-                    <h2 style="font-size:16px; margin:0 0 15px 0;">試合設定</h2>
-                    <label style="font-size:11px; font-weight:bold;">対戦相手を選択</label>
-                    <div id="quickOppList"></div>
-                    <input type="text" id="oppName" placeholder="チーム名を入力">
+                    <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0; color:var(--accent);">MATCH SETUP</h2>
+                    <label style="font-size:11px; font-weight:900; color:var(--text-sub);">OPPONENT</label>
+                    <div id="quickOppList" style="margin-top:10px;"></div>
+                    <input type="text" id="oppName" placeholder="OPPONENT TEAM">
                     
-                    <label style="font-size:11px; font-weight:bold; margin-top:10px; display:block;">会場を選択</label>
-                    <div id="quickVenueList"></div>
-                    <input type="text" id="venueName" placeholder="会場名を入力">
+                    <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px; display:block;">VENUE</label>
+                    <div id="quickVenueList" style="margin-top:10px;"></div>
+                    <input type="text" id="venueName" placeholder="STADIUM / FIELD">
                     
-                    <label style="font-size:11px; font-weight:bold; margin-top:10px; display:block;">試合タイプ</label>
+                    <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px; display:block;">MATCH TYPE</label>
                     <select id="matchType">
-                        <option value="公式戦">公式戦</option>
-                        <option value="トレーニングマッチ">トレーニングマッチ</option>
-                        <option value="カップ戦">カップ戦</option>
-                        <option value="その他">その他</option>
+                        <option value="公式戦">OFFICIAL MATCH</option>
+                        <option value="トレーニングマッチ">TRAINING MATCH</option>
+                        <option value="カップ戦">CUP MATCH</option>
+                        <option value="その他">OTHERS</option>
                     </select>
 
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <div style="flex:1;"><label style="font-size:11px; font-weight:bold;">ハーフ(分)</label>
+                    <div style="display:flex; gap:15px; margin-top:15px;">
+                        <div style="flex:1;"><label style="font-size:11px; font-weight:900; color:var(--text-sub);">TIME</label>
                             <select id="halfMinutes">
-                                <option value="5">5分</option>
-                                <option value="10">10分</option>
-                                <option value="15" selected>15分</option>
-                                <option value="20">20分</option>
-                                <option value="25">25分</option>
-                                <option value="30">30分</option>
-                                <option value="35">35分</option>
-                                <option value="40">40分</option>
-                                <option value="45">45分</option>
+                                <option value="5">5m</option><option value="10">10m</option><option value="15" selected>15m</option>
+                                <option value="20">20m</option><option value="25">25m</option><option value="30">30m</option>
+                                <option value="35">35m</option><option value="40">40m</option><option value="45">45m</option>
                             </select>
                         </div>
-                        <div style="flex:2;"><label style="font-size:11px; font-weight:bold;">形式</label>
+                        <div style="flex:2;"><label style="font-size:11px; font-weight:900; color:var(--text-sub);">FORMATION</label>
                             <select id="formationSelect">
-                                <option value="3-3-1">3-3-1 (基本)</option>
-                                <option value="2-4-1">2-4-1 (攻撃)</option>
-                                <option value="3-2-2">3-2-2 (カウンター)</option>
-                                <option value="2-3-2">2-3-2 (超攻撃)</option>
+                                <option value="3-3-1">3-3-1 BASIC</option>
+                                <option value="2-4-1">2-4-1 ATTACK</option>
+                                <option value="3-2-2">3-2-2 COUNTER</option>
+                                <option value="2-3-2">2-3-2 ULTRA</option>
                             </select>
                         </div>
                     </div>
-                    <button id="kickoffBtn" onclick="startMatch()" style="background:var(--accent); margin-top:15px;">キックオフ</button>
+                    <button id="kickoffBtn" onclick="startMatch()" style="margin-top:25px; height:65px; font-size:18px;">KICK OFF</button>
                 </div>
             </div>
 
             <div id="liveScreen" style="display:none;">
                 <div class="live-header">
-                    <div id="syncStatus" style="font-size:9px; color:var(--green); margin-bottom:5px;">● 同期済み</div>
+                    <div id="syncStatus" style="font-size:10px; font-weight:900; color:var(--green); margin-bottom:10px; letter-spacing:1px;">● LIVE SYNCED</div>
                     <div class="timer-display" id="timerText">15:00</div>
-                    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-                        <button id="btnTimer" onclick="toggleTimer()" style="background:#fff; color:var(--primary); width:48%;">スタート</button>
-                        <button onclick="endPeriod()" style="background:rgba(255,255,255,0.2); border:none; border-radius:12px; color:#fff; width:48%; font-weight:900;">試合終了</button>
+                    <div style="display:flex; justify-content:center; gap:15px; margin:20px 0;">
+                        <button id="btnTimer" onclick="toggleTimer()" style="background:#fff; color:#000; height:55px;">START</button>
+                        <button onclick="endPeriod()" style="background:var(--glass); border:none; border-radius:18px; color:#fff; height:55px; font-weight:900;">FINISH</button>
                     </div>
                     <div class="score-board">
                         <div style="text-align:center;">
-                            <div style="font-size:10px; color:#999;" id="myTeamDisplay">TEAM</div>
+                            <div style="font-size:11px; font-weight:900; color:var(--text-sub); margin-bottom:5px;" id="myTeamDisplay">HOME</div>
                             <div class="score-ctrl">
                                 <button class="score-btn" onclick="modifyOwnScore(-1)">-</button>
                                 <div id="scoreOwn" class="score-val">0</div>
                                 <button class="score-btn" onclick="modifyOwnScore(1)">+</button>
                             </div>
                         </div>
-                        <div style="font-size:18px; color:rgba(255,255,255,0.4);">VS</div>
+                        <div style="font-size:20px; font-weight:900; color:var(--glass);">VS</div>
                         <div style="text-align:center;">
-                            <div style="font-size:10px; color:#999;" id="oppDisplay">OPP</div>
+                            <div style="font-size:11px; font-weight:900; color:var(--text-sub); margin-bottom:5px;" id="oppDisplay">AWAY</div>
                             <div class="score-ctrl">
                                 <button class="score-btn" onclick="modifyOppScore(-1)">-</button>
                                 <div id="scoreOpp" class="score-val">0</div>
@@ -188,51 +202,61 @@
                     </div>
                 </div>
                 <div class="pitch" id="livePitchArea"></div>
-                <div class="section-title" style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px;">選手交代 (ドラッグして入替)</div>
+                <div class="section-title" style="font-size:12px; font-weight:900; color:var(--accent); margin-top:25px; letter-spacing:1px;">SUBSTITUTIONS</div>
                 <div id="onPitchGrid" class="player-grid"></div>
                 <div id="benchGrid" class="player-grid"></div>
-                <textarea id="liveMemo" placeholder="試合メモ（自動保存）..." oninput="syncToCloud()" style="height:100px; margin-top:15px;"></textarea>
-                <div id="eventLog" style="font-size:11px; color:#666; margin-top:10px;"></div>
+                <textarea id="liveMemo" placeholder="MATCH NOTES..." oninput="syncToCloud()" style="height:120px; margin-top:20px; background:var(--card-bg);"></textarea>
+                <div id="eventLog" style="font-size:12px; color:var(--text-sub); margin-top:15px; font-weight:600;"></div>
             </div>
         </div>
 
         <div id="tabHistory" class="tab-content">
-            <h2 style="font-size:14px; margin-bottom:15px;">試合レポート一覧</h2>
+            <h2 style="font-size:18px; font-weight:900; margin-bottom:20px; color:var(--accent);">MATCH HISTORY</h2>
             <div id="historyList"></div>
         </div>
 
         <div id="tabSettings" class="tab-content">
             <div class="card">
-                <label style="font-size:11px; font-weight:bold;">自チーム名</label>
+                <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0; color:var(--accent);">SETTINGS</h2>
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub);">MY TEAM NAME</label>
                 <input type="text" id="myTeamInput" onchange="saveTeamName()">
                 
-                <label style="font-size:11px; font-weight:bold; margin-top:15px; display:block;">所属選手登録</label>
-                <div style="display:flex; gap:5px;"><input type="number" id="pInNum" placeholder="No." style="width:70px;"><input type="text" id="pInName" placeholder="名前"><button onclick="addMaster('players')" style="width:50px; padding:0;">＋</button></div>
-                <div id="pMasterList" style="margin-top:10px;"></div>
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:20px; display:block;">PLAYER REGISTRATION</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div class="photo-input-wrap">
+                        <span id="photoIcon">📷</span>
+                        <img id="pInPhotoPreview" class="photo-preview">
+                        <input type="file" id="pInPhoto" accept="image/*" onchange="previewPhoto(this)">
+                    </div>
+                    <input type="number" id="pInNum" placeholder="No." style="width:65px; margin-bottom:0;">
+                    <input type="text" id="pInName" placeholder="PLAYER NAME" style="margin-bottom:0;">
+                    <button onclick="addMaster('players')" style="width:60px; height:50px; padding:0;">ADD</button>
+                </div>
+                <div id="pMasterList" style="margin-top:20px;"></div>
 
-                <label style="font-size:11px; font-weight:bold; margin-top:20px; display:block;">相手チーム登録</label>
-                <div style="display:flex; gap:5px;"><input type="text" id="oppInName" placeholder="チーム名"><button onclick="addMaster('opps')" style="width:50px; padding:0;">＋</button></div>
-                <div id="oppMasterList" style="margin-top:10px;"></div>
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:30px; display:block;">OPPONENT LIST</label>
+                <div style="display:flex; gap:10px;"><input type="text" id="oppInName" placeholder="TEAM NAME" style="margin-bottom:0;"><button onclick="addMaster('opps')" style="width:60px; height:50px; padding:0;">ADD</button></div>
+                <div id="oppMasterList" style="margin-top:15px;"></div>
 
-                <label style="font-size:11px; font-weight:bold; margin-top:20px; display:block;">会場登録</label>
-                <div style="display:flex; gap:5px;"><input type="text" id="venueInName" placeholder="会場名"><button onclick="addMaster('venues')" style="width:50px; padding:0;">＋</button></div>
-                <div id="venueMasterList" style="margin-top:10px;"></div>
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:30px; display:block;">VENUE LIST</label>
+                <div style="display:flex; gap:10px;"><input type="text" id="venueInName" placeholder="VENUE NAME" style="margin-bottom:0;"><button onclick="addMaster('venues')" style="width:60px; height:50px; padding:0;">ADD</button></div>
+                <div id="venueMasterList" style="margin-top:15px;"></div>
             </div>
         </div>
     </div>
 
     <div class="bottom-nav" id="bottomNav" style="display:none;">
-        <div class="nav-item active" id="navLive" onclick="showTab('tabLive', this)">Live</div>
-        <div class="nav-item" id="navHistory" onclick="showTab('tabHistory', this)">Reports</div>
-        <div class="nav-item" id="navSettings" onclick="showTab('tabSettings', this)">Settings</div>
+        <div class="nav-item active" id="navLive" onclick="showTab('tabLive', this)">LIVE</div>
+        <div class="nav-item" id="navHistory" onclick="showTab('tabHistory', this)">HISTORY</div>
+        <div class="nav-item" id="navSettings" onclick="showTab('tabSettings', this)">SETTINGS</div>
     </div>
 </div>
 
 <div id="actionModal" class="modal-overlay" onclick="closeModals()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 id="modalTitle" style="text-align:center;"></h3>
+        <h3 id="modalTitle" style="text-align:center; color:var(--accent); margin-bottom:20px; font-weight:900;"></h3>
         <div id="modalList"></div>
-        <button onclick="closeModals()" style="background:#e2e8f0; color:#333; margin-top:10px;">閉じる</button>
+        <button onclick="closeModals()" style="background:var(--glass); color:#fff; margin-top:15px;">CLOSE</button>
     </div>
 </div>
 
@@ -242,8 +266,8 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let db = {
-        myTeam: localStorage.getItem('ps_myteam') || "自チーム",
-        players: JSON.parse(localStorage.getItem('ps_players_v8')) || [],
+        myTeam: localStorage.getItem('ps_myteam') || "MY TEAM",
+        players: JSON.parse(localStorage.getItem('ps_players_v9')) || [],
         opps: JSON.parse(localStorage.getItem('ps_opps_master')) || [],
         venues: JSON.parse(localStorage.getItem('ps_venues_master')) || []
     };
@@ -257,26 +281,20 @@
         "2-3-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
     };
 
-    // Drag and Drop Logic
-    let draggedElement = null;
-    let draggedPlayerId = null;
-    let dragSourcePosId = null;
+    // Drag and Drop
+    let draggedElement = null, draggedPlayerId = null, dragSourcePosId = null;
 
     function initDraggable(el, pId, posId = null) {
         el.addEventListener('touchstart', (e) => {
             if (e.touches.length > 1) return;
-            draggedElement = el;
-            draggedPlayerId = pId;
-            dragSourcePosId = posId;
+            draggedElement = el; draggedPlayerId = pId; dragSourcePosId = posId;
             el.classList.add('dragging');
         }, { passive: true });
 
         el.addEventListener('touchmove', (e) => {
             if (!draggedElement) return;
             const touch = e.touches[0];
-            el.style.position = 'fixed';
-            el.style.left = touch.clientX + 'px';
-            el.style.top = touch.clientY + 'px';
+            el.style.position = 'fixed'; el.style.left = touch.clientX + 'px'; el.style.top = touch.clientY + 'px';
             e.preventDefault();
         }, { passive: false });
 
@@ -284,14 +302,11 @@
             if (!draggedElement) return;
             el.classList.remove('dragging');
             el.style.position = ''; el.style.left = ''; el.style.top = '';
-
             const touch = e.changedTouches[0];
             const target = document.elementFromPoint(touch.clientX, touch.clientY);
             const dropZone = target ? target.closest('.player-icon, .player-chip, .pitch') : null;
-
             if (dropZone) handleDrop(dropZone);
             else updateUI();
-
             draggedElement = null; draggedPlayerId = null; dragSourcePosId = null;
         });
     }
@@ -303,57 +318,37 @@
                 const temp = live.pitchPositions[targetPosId];
                 live.pitchPositions[targetPosId] = draggedPlayerId;
                 live.pitchPositions[dragSourcePosId] = temp;
-            } else {
-                live.pitchPositions[targetPosId] = draggedPlayerId;
-            }
-        } else if (target.closest('.pitch')) {
-            updateUI();
+            } else live.pitchPositions[targetPosId] = draggedPlayerId;
         } else if (target.classList.contains('player-chip') || target.closest('#benchGrid')) {
             if (dragSourcePosId) delete live.pitchPositions[dragSourcePosId];
         }
         syncToCloud(); updateUI();
     }
 
-    // Pull to Refresh Implementation (Disabled on Live Screen)
-    let startY = 0;
-    let pulling = false;
-    const appContainer = document.getElementById('appContainer');
-    const ptrIndicator = document.getElementById('ptr-indicator');
-    const ptrSpinner = document.getElementById('ptr-spinner');
-    const ptrText = document.getElementById('ptr-text');
+    // Pull to Refresh
+    let startY = 0, pulling = false;
+    const appContainer = document.getElementById('appContainer'), ptrIndicator = document.getElementById('ptr-indicator'), ptrSpinner = document.getElementById('ptr-spinner'), ptrText = document.getElementById('ptr-text');
 
     window.addEventListener('touchstart', (e) => {
-        // Live画面が表示されている場合はリロード無効化
         if (document.getElementById('liveScreen').style.display === 'block') return;
-        if (window.scrollY === 0) {
-            startY = e.touches[0].pageY;
-            pulling = true;
-        }
+        if (window.scrollY === 0) { startY = e.touches[0].pageY; pulling = true; }
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
         if (!pulling) return;
-        const currentY = e.touches[0].pageY;
-        const diff = currentY - startY;
+        const currentY = e.touches[0].pageY, diff = currentY - startY;
         if (diff > 0) {
             const move = Math.pow(diff, 0.8);
             appContainer.style.transform = `translateY(${move}px)`;
-            ptrText.innerText = move > 50 ? "指を離して更新" : "引き下げて更新";
+            ptrText.innerText = move > 50 ? "RELEASE TO REFRESH" : "PULL TO REFRESH";
         }
     }, { passive: true });
 
     window.addEventListener('touchend', () => {
         if (!pulling) return;
-        const transform = appContainer.style.transform;
-        const match = transform.match(/translateY\((.*)px\)/);
-        const move = match ? parseFloat(match[1]) : 0;
-        appContainer.style.transform = '';
-        pulling = false;
-        if (move > 50) {
-            ptrSpinner.style.display = 'block';
-            ptrText.innerText = "更新中...";
-            setTimeout(() => location.reload(), 300);
-        }
+        const transform = appContainer.style.transform, match = transform.match(/translateY\((.*)px\)/), move = match ? parseFloat(match[1]) : 0;
+        appContainer.style.transform = ''; pulling = false;
+        if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "REFRESHING..."; setTimeout(() => location.reload(), 300); }
     });
 
     window.onload = () => {
@@ -367,10 +362,8 @@
     };
 
     function checkPass() {
-        if(document.getElementById('passcode').value === "2026kickoff") {
-            localStorage.setItem('ps_logged_in', 'true');
-            enterMainUI();
-        } else { alert("パスコードが違います"); }
+        if(document.getElementById('passcode').value === "2026kickoff") { localStorage.setItem('ps_logged_in', 'true'); enterMainUI(); }
+        else alert("ACCESS DENIED");
     }
 
     function enterMainUI() {
@@ -381,142 +374,101 @@
         refreshSettingsUI(); updateQuickLists();
     }
 
-    // Fast Kickoff
+    // Photo Preview & Storage
+    let currentPhotoData = null;
+    function previewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentPhotoData = e.target.result;
+                document.getElementById('pInPhotoPreview').src = currentPhotoData;
+                document.getElementById('pInPhotoPreview').style.display = 'block';
+                document.getElementById('photoIcon').style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     async function startMatch() {
-        const opp = document.getElementById('oppName').value.trim();
-        const venue = document.getElementById('venueName').value.trim();
-        const type = document.getElementById('matchType').value;
-        if(!opp || !venue) { alert("相手チームと会場を入力してください"); return; }
-
-        const btn = document.getElementById('kickoffBtn');
-        btn.disabled = true; btn.innerText = "準備中...";
-
+        const opp = document.getElementById('oppName').value.trim(), venue = document.getElementById('venueName').value.trim(), type = document.getElementById('matchType').value;
+        if(!opp || !venue) { alert("COMPLETE ALL FIELDS"); return; }
+        const btn = document.getElementById('kickoffBtn'); btn.disabled = true; btn.innerText = "PREPARING...";
         if(!db.opps.includes(opp)) { db.opps.push(opp); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); }
         if(!db.venues.includes(venue)) { db.venues.push(venue); localStorage.setItem('ps_venues_master', JSON.stringify(db.venues)); }
-
         live.formation = document.getElementById('formationSelect').value;
         live.timerLeft = parseInt(document.getElementById('halfMinutes').value, 10) * 60;
         live.score = { own: 0, opp: 0 }; live.playerGoals = {}; live.playerCards = {}; live.events = []; live.memo = "";
-
-        const f = formations[live.formation];
-        const sorted = [...db.players].sort((a,b) => (Number(a.num)||999) - (Number(b.num)||999));
-        live.pitchPositions = {};
-        f.forEach((pos, idx) => { if(sorted[idx]) live.pitchPositions[pos.id] = sorted[idx].id; });
-
-        document.getElementById('setupScreen').style.display = 'none';
-        document.getElementById('liveScreen').style.display = 'block';
-        document.getElementById('oppDisplay').innerText = opp;
-        document.getElementById('myTeamDisplay').innerText = db.myTeam;
+        const f = formations[live.formation], sorted = [...db.players].sort((a,b) => (Number(a.num)||999) - (Number(b.num)||999));
+        live.pitchPositions = {}; f.forEach((pos, idx) => { if(sorted[idx]) live.pitchPositions[pos.id] = sorted[idx].id; });
+        document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block';
+        document.getElementById('oppDisplay').innerText = opp; document.getElementById('myTeamDisplay').innerText = db.myTeam;
         updateUI();
-
-        supabaseClient.from('match_reports').insert([{
-            my_team: db.myTeam, opponent: opp, venue: `${venue} (${type})`, score: "0 - 0", detail: "試合開始", memo: ""
-        }]).select().then(({ data, error }) => {
-            if(!error && data) {
-                live.currentId = data[0].id;
-                document.getElementById('syncStatus').innerText = "● 同期済み";
-            } else {
-                document.getElementById('syncStatus').innerText = "● オフライン保存中";
-                document.getElementById('syncStatus').style.color = "#e67e22";
-            }
-            btn.disabled = false; btn.innerText = "キックオフ";
+        supabaseClient.from('match_reports').insert([{ my_team: db.myTeam, opponent: opp, venue: `${venue} (${type})`, score: "0 - 0", detail: "MATCH START", memo: "" }]).select().then(({ data, error }) => {
+            if(!error && data) { live.currentId = data[0].id; document.getElementById('syncStatus').innerText = "● LIVE SYNCED"; }
+            btn.disabled = false; btn.innerText = "KICK OFF";
         });
     }
 
     async function syncToCloud() {
         if(!live.currentId) return;
-        const status = document.getElementById('syncStatus');
-        status.innerText = "● 同期中..."; status.style.color = "#f1c40f";
+        const status = document.getElementById('syncStatus'); status.innerText = "● SYNCING..."; status.style.color = var(--yellow);
         live.memo = document.getElementById('liveMemo').value;
-        const { error } = await supabaseClient.from('match_reports').update({
-            score: `${live.score.own} - ${live.score.opp}`,
-            detail: live.events.map(e => `${e.time} ${e.text}`).join('\n'),
-            memo: live.memo
-        }).eq('id', live.currentId);
-        if(!error) { status.innerText = "● 同期済み"; status.style.color = "var(--green)"; }
+        const { error } = await supabaseClient.from('match_reports').update({ score: `${live.score.own} - ${live.score.opp}`, detail: live.events.map(e => `${e.time} ${e.text}`).join('\n'), memo: live.memo }).eq('id', live.currentId);
+        if(!error) { status.innerText = "● LIVE SYNCED"; status.style.color = var(--green); }
     }
 
     function updateUI() {
         document.getElementById('timerText').innerText = formatTime(live.timerLeft);
-        document.getElementById('scoreOwn').innerText = live.score.own;
-        document.getElementById('scoreOpp').innerText = live.score.opp;
-        
+        document.getElementById('scoreOwn').innerText = live.score.own; document.getElementById('scoreOpp').innerText = live.score.opp;
         const f = formations[live.formation];
         document.getElementById('livePitchArea').innerHTML = f.map(pos => {
-            const pId = live.pitchPositions[pos.id];
-            const p = db.players.find(x => x.id === pId);
-            if(!p) return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" data-pos-id="${pos.id}" onclick="openBenchSelector('${pos.id}')"><div class="icon-jersey" style="background:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.3);">＋</div><div class="icon-name">${pos.label}</div></div>`;
-            const g = live.playerGoals[p.id] || 0;
-            const card = live.playerCards[p.id];
+            const pId = live.pitchPositions[pos.id], p = db.players.find(x => x.id === pId);
+            if(!p) return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" data-pos-id="${pos.id}" onclick="openBenchSelector('${pos.id}')"><div class="icon-jersey" style="border-style:dashed; opacity:0.3;">＋</div><div class="icon-name">${pos.label}</div></div>`;
+            const g = live.playerGoals[p.id] || 0, card = live.playerCards[p.id];
             return `<div class="player-icon" id="icon-${p.id}" style="top:${pos.t}; left:${pos.l};" data-pos-id="${pos.id}" data-player-id="${p.id}" onclick="openPlayerAction('${p.id}')">
-                <div class="icon-jersey">${p.num || ''}</div>
+                <div class="icon-jersey">
+                    ${p.photo ? `<img src="${p.photo}" class="player-photo">` : ''}
+                    <span class="jersey-num-overlay">${p.num || ''}</span>
+                </div>
                 ${card ? `<div class="card-mini card-${card}"></div>` : ''}
                 <div class="icon-name"><span>${p.name}</span>${g>0?`<span class="goal-mini">${g}</span>`:''}</div>
             </div>`;
         }).join('');
-
         const onIds = Object.values(live.pitchPositions);
         document.getElementById('onPitchGrid').innerHTML = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="player-chip on-pitch" id="chip-${p.id}" data-player-id="${p.id}" onclick="openPlayerAction('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
         document.getElementById('benchGrid').innerHTML = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="player-chip bench" id="chip-${p.id}" data-player-id="${p.id}" onclick="openPositionSelector('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
-
         db.players.forEach(p => {
-            const iconEl = document.getElementById(`icon-${p.id}`);
-            const chipEl = document.getElementById(`chip-${p.id}`);
+            const iconEl = document.getElementById(`icon-${p.id}`), chipEl = document.getElementById(`chip-${p.id}`);
             if (iconEl) initDraggable(iconEl, p.id, Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === p.id));
             if (chipEl) initDraggable(chipEl, p.id);
         });
     }
 
     function openPlayerAction(pId) {
-        const p = db.players.find(x => x.id === pId);
-        const posId = Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === pId);
-        const html = `
-            <div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div>
-            <div class="action-btn" onclick="openBenchSelector('${posId}')">🔄 交代（ベンチから）</div>
-            <div class="action-btn" onclick="delete live.pitchPositions['${posId}']; updateUI(); syncToCloud(); closeModals();">🔻 ベンチへ下げる</div>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <div class="action-btn" style="flex:1; background:var(--yellow); color:#000;" onclick="giveCard('${pId}', 'yellow')">🟨</div>
-                <div class="action-btn" style="flex:1; background:var(--accent); color:#fff;" onclick="giveCard('${pId}', 'red')">🟥</div>
-                <div class="action-btn" style="flex:1; background:var(--green); color:#fff;" onclick="giveCard('${pId}', 'green')">🟩</div>
-            </div>
-        `;
+        const p = db.players.find(x => x.id === pId), posId = Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === pId);
+        const html = `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ GOAL</div><div class="action-btn" onclick="openBenchSelector('${posId}')">🔄 SUBSTITUTE</div><div class="action-btn" onclick="delete live.pitchPositions['${posId}']; updateUI(); syncToCloud(); closeModals();">🔻 TO BENCH</div><div style="display:flex; gap:10px; margin-top:15px;"><div class="action-btn" style="flex:1; background:var(--yellow); color:#000;" onclick="giveCard('${pId}', 'yellow')">🟨</div><div class="action-btn" style="flex:1; background:var(--secondary); color:#fff;" onclick="giveCard('${pId}', 'red')">🟥</div><div class="action-btn" style="flex:1; background:var(--green); color:#fff;" onclick="giveCard('${pId}', 'green')">🟩</div></div>`;
         showActionModal(`${p.num?p.num+' ':''}${p.name}`, html);
     }
 
-    function giveCard(pId, type) {
-        live.playerCards[pId] = type;
-        const p = db.players.find(x => x.id === pId);
-        addEvent(`${p.name} ${type === 'yellow' ? 'イエロー' : (type === 'red' ? 'レッド' : 'グリーン')}カード`);
-        updateUI(); syncToCloud(); closeModals();
-    }
-
-    function recordGoal(pId) {
-        live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1;
-        live.score.own++;
-        addEvent(`${db.players.find(x=>x.id===pId).name} ゴール!`);
-        syncToCloud(); updateUI(); closeModals();
-    }
-
+    function giveCard(pId, type) { live.playerCards[pId] = type; addEvent(`${db.players.find(x=>x.id===pId).name} ${type.toUpperCase()} CARD`); updateUI(); syncToCloud(); closeModals(); }
+    function recordGoal(pId) { live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1; live.score.own++; addEvent(`${db.players.find(x=>x.id===pId).name} GOAL!`); syncToCloud(); updateUI(); closeModals(); }
     function modifyOwnScore(val) {
         if(val > 0) {
             const onIds = Object.values(live.pitchPositions);
             const listHtml = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="recordGoal('${p.id}')">${p.num?p.num+' ':''}${p.name}</div>`).join('');
-            showActionModal("得点者を選択", listHtml || `<div class="action-btn" onclick="live.score.own++; addEvent('自チーム得点'); syncToCloud(); updateUI(); closeModals();">不明・その他</div>`);
-        } else if(live.score.own > 0) {
-            live.score.own--; addEvent("得点取消"); syncToCloud(); updateUI();
-        }
+            showActionModal("SELECT SCORER", listHtml || `<div class="action-btn" onclick="live.score.own++; addEvent('TEAM GOAL'); syncToCloud(); updateUI(); closeModals();">UNKNOWN / OTHER</div>`);
+        } else if(live.score.own > 0) { live.score.own--; addEvent("GOAL CANCELLED"); syncToCloud(); updateUI(); }
     }
-    function modifyOppScore(val) { live.score.opp = Math.max(0, live.score.opp + val); addEvent(val>0?"失点":"失点取消"); syncToCloud(); updateUI(); }
-
+    function modifyOppScore(val) { live.score.opp = Math.max(0, live.score.opp + val); addEvent(val>0?"CONCEDED":"CANCELLED"); syncToCloud(); updateUI(); }
     function openBenchSelector(posId) {
         const onIds = Object.values(live.pitchPositions);
         const listHtml = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="live.pitchPositions['${posId}']='${p.id}'; syncToCloud(); updateUI(); closeModals();">${p.num?p.num+' ':''}${p.name}</div>`).join('');
-        showActionModal("配置する選手", listHtml || "ベンチに選手がいません");
+        showActionModal("SUBSTITUTE IN", listHtml || "NO PLAYERS ON BENCH");
     }
     function openPositionSelector(pId) {
         const f = formations[live.formation];
-        const listHtml = f.filter(pos => !live.pitchPositions[pos.id]).map(pos => `<div class="action-btn" onclick="live.pitchPositions['${pos.id}']='${pId}'; syncToCloud(); updateUI(); closeModals();">${pos.label}へ</div>`).join('');
-        showActionModal("配置先", listHtml || "空きなし");
+        const listHtml = f.filter(pos => !live.pitchPositions[pos.id]).map(pos => `<div class="action-btn" onclick="live.pitchPositions['${pos.id}']='${pId}'; syncToCloud(); updateUI(); closeModals();">TO ${pos.label}</div>`).join('');
+        showActionModal("ASSIGN POSITION", listHtml || "NO VACANT POSITIONS");
     }
 
     async function fetchReports() {
@@ -525,45 +477,40 @@
             document.getElementById('historyList').innerHTML = data.map(r => `
                 <details class="report-item">
                     <summary>
-                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900;"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
                         <div class="report-score">${r.score}</div>
-                        <div style="font-size:10px; color:#999;">会場: ${r.venue}</div>
+                        <div style="font-size:11px; color:var(--text-sub); font-weight:700;">STADIUM: ${r.venue}</div>
                     </summary>
-                    <div class="report-content">
-                        <div style="font-weight:bold; margin-top:10px;">経過:</div><div style="white-space:pre-wrap; color:#555; margin-bottom:10px;">${r.detail}</div>
-                        <div style="font-weight:bold;">メモ:</div><div style="white-space:pre-wrap; color:#555;">${r.memo}</div>
-                        <button class="del-row-btn" onclick="deleteReport('${r.id}')">削除する</button>
+                    <div style="padding:20px; background:rgba(0,0,0,0.2); border-top:1px solid var(--glass);">
+                        <div style="font-weight:900; color:var(--accent); margin-bottom:5px;">EVENTS:</div><div style="white-space:pre-wrap; color:var(--text-main); margin-bottom:15px; font-size:13px;">${r.detail}</div>
+                        <div style="font-weight:900; color:var(--accent); margin-bottom:5px;">NOTES:</div><div style="white-space:pre-wrap; color:var(--text-main); font-size:13px;">${r.memo}</div>
+                        <button class="del-row-btn" onclick="deleteReport('${r.id}')" style="margin-top:20px;">DELETE REPORT</button>
                     </div>
                 </details>
             `).join('');
         }
     }
-    async function deleteReport(id) { if(confirm("完全に削除しますか？")) { await supabaseClient.from('match_reports').delete().eq('id', id); fetchReports(); } }
-    async function endPeriod() { if(confirm("保存して終了しますか？")) { await syncToCloud(); localStorage.setItem('ps_show_reports', 'true'); location.reload(); } }
-    function addEvent(txt) {
-        const time = formatTime(live.timerLeft); live.events.push({ time, text: txt });
-        const entry = document.createElement('div'); entry.textContent = `${time} ${txt}`;
-        document.getElementById('eventLog').prepend(entry);
-    }
+    async function deleteReport(id) { if(confirm("DELETE PERMANENTLY?")) { await supabaseClient.from('match_reports').delete().eq('id', id); fetchReports(); } }
+    async function endPeriod() { if(confirm("SAVE AND FINISH MATCH?")) { await syncToCloud(); localStorage.setItem('ps_show_reports', 'true'); location.reload(); } }
+    function addEvent(txt) { const time = formatTime(live.timerLeft); live.events.push({ time, text: txt }); const entry = document.createElement('div'); entry.textContent = `${time} ${txt}`; document.getElementById('eventLog').prepend(entry); }
     function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
     function toggleTimer() {
         const btn = document.getElementById('btnTimer');
-        if(live.timerInterval) { clearInterval(live.timerInterval); live.timerInterval = null; btn.innerText = "再開"; }
-        else { live.timerInterval = setInterval(() => { if(live.timerLeft > 0) live.timerLeft--; updateUI(); }, 1000); btn.innerText = "停止"; }
+        if(live.timerInterval) { clearInterval(live.timerInterval); live.timerInterval = null; btn.innerText = "RESUME"; }
+        else { live.timerInterval = setInterval(() => { if(live.timerLeft > 0) live.timerLeft--; updateUI(); }, 1000); btn.innerText = "PAUSE"; }
     }
     function showTab(tabId, el) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        el.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(tabId).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
         if(tabId === 'tabHistory') fetchReports();
     }
     function addMaster(type) {
         if(type==='players') {
-            const num = document.getElementById('pInNum').value; const name = document.getElementById('pInName').value.trim();
-            if(name) { db.players.push({ id: Date.now().toString(), num, name }); localStorage.setItem('ps_players_v8', JSON.stringify(db.players)); }
-            else { alert("名前を入力してください"); return; }
+            const num = document.getElementById('pInNum').value, name = document.getElementById('pInName').value.trim();
+            if(name) { db.players.push({ id: Date.now().toString(), num, name, photo: currentPhotoData }); localStorage.setItem('ps_players_v9', JSON.stringify(db.players)); }
+            else { alert("NAME REQUIRED"); return; }
             document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = '';
+            document.getElementById('pInPhotoPreview').style.display = 'none'; document.getElementById('photoIcon').style.display = 'block'; currentPhotoData = null;
         } else if(type==='opps') {
             const name = document.getElementById('oppInName').value.trim();
             if(name && !db.opps.includes(name)) { db.opps.push(name); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); }
@@ -577,24 +524,30 @@
     }
     function editPlayer(id) {
         const p = db.players.find(x => x.id === id);
-        const newNum = prompt("背番号を修正", p.num || "");
-        const newName = prompt("名前を修正", p.name);
+        const newNum = prompt("EDIT NUMBER", p.num || "");
+        const newName = prompt("EDIT NAME", p.name);
         if(newName !== null && newName.trim() !== "") {
             p.num = newNum; p.name = newName.trim();
-            localStorage.setItem('ps_players_v8', JSON.stringify(db.players));
+            localStorage.setItem('ps_players_v9', JSON.stringify(db.players));
             refreshSettingsUI(); if(document.getElementById('liveScreen').style.display === 'block') updateUI();
         }
     }
     function deleteMaster(type, index) { 
-        if(confirm("削除しますか？")) { 
+        if(confirm("DELETE?")) { 
             db[type].splice(index, 1); 
-            const key = type === 'players' ? 'ps_players_v8' : (type === 'opps' ? 'ps_opps_master' : 'ps_venues_master');
+            const key = type === 'players' ? 'ps_players_v9' : (type === 'opps' ? 'ps_opps_master' : 'ps_venues_master');
             localStorage.setItem(key, JSON.stringify(db[type])); 
             refreshSettingsUI(); updateQuickLists(); 
         } 
     }
     function refreshSettingsUI() {
-        document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del"><span>${p.num?p.num+' ':''}${p.name}</span><div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div></div>`).join('');
+        document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del">
+            <div style="display:flex; align-items:center; gap:10px;">
+                ${p.photo ? `<img src="${p.photo}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid var(--accent);">` : `<div style="width:30px; height:30px; border-radius:50%; background:var(--glass); border:1px dashed var(--text-sub);"></div>`}
+                <span>${p.num?p.num+' ':''}${p.name}</span>
+            </div>
+            <div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div>
+        </div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o,i) => `<div class="chip-del">${o} <span class="del-btn" onclick="deleteMaster('opps', ${i})">×</span></div>`).join('');
         document.getElementById('venueMasterList').innerHTML = db.venues.map((v,i) => `<div class="chip-del">${v} <span class="del-btn" onclick="deleteMaster('venues', ${i})">×</span></div>`).join('');
     }
