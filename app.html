@@ -32,15 +32,32 @@
         .score-btn { width: 30px; height: 30px; border-radius: 8px; border: none; background: rgba(255,255,255,0.2); color: #fff; font-weight: 900; cursor: pointer; }
         .score-val { font-size: 28px; font-weight: 900; min-width: 40px; }
 
-        /* ピッチと選手アイコン */
+        /* ピッチと選手アイコン (ユニフォーム風) */
         .pitch { width: 100%; aspect-ratio: 3/4; background: linear-gradient(180deg, #1b5e20 0%, #2e7d32 100%), linear-gradient(to right, transparent calc(50% - 1px), rgba(255,255,255,0.2) calc(50% - 1px), rgba(255,255,255,0.2) calc(50% + 1px), transparent calc(50% + 1px)), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0 46px, transparent 47px); position: relative; border-radius: 12px; overflow: hidden; margin-top: 10px; }
         .player-icon { position: absolute; width: 48px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; }
-        .icon-circle { width: 32px; height: 32px; background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 12px; font-weight: 800; }
-        .icon-name { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 8px; color: #fff; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 6px; margin-top: 2px; white-space: nowrap; }
+        
+        /* ユニフォーム風デザイン */
+        .icon-jersey { 
+            width: 34px; height: 32px; background: var(--accent); color: #fff; 
+            border: 2px solid #fff; border-radius: 4px 4px 2px 2px; 
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto; font-size: 14px; font-weight: 900; position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .icon-jersey::before, .icon-jersey::after {
+            content: ''; position: absolute; top: 0; width: 10px; height: 12px; background: var(--accent); border: 2px solid #fff; border-bottom: none;
+        }
+        .icon-jersey::before { left: -8px; border-radius: 4px 0 0 0; transform: skewX(-20deg); border-right: none; }
+        .icon-jersey::after { right: -8px; border-radius: 0 4px 0 0; transform: skewX(20deg); border-left: none; }
+
+        .icon-name { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 8px; color: #fff; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 6px; margin-top: 4px; white-space: nowrap; }
+        .goal-mini { background: #fff; color: var(--accent); border-radius: 50%; width: 10px; height: 10px; font-size: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; }
-        .player-chip { background: #fff; border: 2px solid #edf2f7; border-radius: 12px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; }
+        .player-chip { background: #fff; border: 2px solid #edf2f7; border-radius: 12px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; }
         .player-chip.on-pitch { border-color: var(--text-main); }
         .player-chip.bench { background: #f8fafc; color: var(--text-sub); border-style: dashed; }
+        .chip-num { position: absolute; top: -5px; left: -5px; background: var(--accent); color: #fff; font-size: 8px; padding: 1px 4px; border-radius: 4px; }
         
         /* 共通UI (16pxズーム防止) */
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 12px; font-size: 16px; margin-bottom: 8px; font-weight: bold; outline: none; }
@@ -48,6 +65,7 @@
         .quick-chip { background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; margin: 0 5px 8px 0; display: inline-block; cursor: pointer; }
         .chip-del { background: #f8fafc; border: 1px solid #ddd; padding: 8px 12px; border-radius: 10px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
         .del-btn { color: #e31b23; font-weight: 900; padding: 0 10px; cursor: pointer; }
+        .edit-btn { color: var(--blue); font-weight: 900; padding: 0 10px; cursor: pointer; margin-right: 5px; }
         .del-row-btn { background: #fee2e2; color: #ef4444; margin-top: 15px; font-size: 12px; }
 
         .bottom-nav { position: fixed; bottom: 20px; left: 10px; right: 10px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; display: flex; padding: 12px 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; }
@@ -196,11 +214,9 @@
         "2-3-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
     };
 
-    // 起動時にログイン状態を確認
     window.onload = () => {
         if (localStorage.getItem('ps_logged_in') === 'true') {
             enterMainUI();
-            // レポート作成後などのリロード時にレポート一覧を表示させるための処理
             if (localStorage.getItem('ps_show_reports') === 'true') {
                 localStorage.removeItem('ps_show_reports');
                 showTab('tabHistory', document.getElementById('navHistory'));
@@ -226,19 +242,16 @@
         updateQuickLists();
     }
 
-    // 試合開始
     async function startMatch() {
         const opp = document.getElementById('oppName').value.trim();
         const venue = document.getElementById('venueName').value.trim();
         if(!opp || !venue) { alert("相手チームと会場を入力してください"); return; }
 
-        // 自動追加ロジック
         let changed = false;
         if(!db.opps.includes(opp)) { db.opps.push(opp); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); changed = true; }
         if(!db.venues.includes(venue)) { db.venues.push(venue); localStorage.setItem('ps_venues_master', JSON.stringify(db.venues)); changed = true; }
         if(changed) { refreshSettingsUI(); updateQuickLists(); }
 
-        // クラウド初期登録 (エラーハンドリング強化)
         try {
             const { data, error } = await supabaseClient.from('match_reports').insert([{
                 my_team: db.myTeam, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始", memo: ""
@@ -259,7 +272,7 @@
         live.memo = "";
 
         const f = formations[live.formation];
-        const sorted = [...db.players].sort((a,b) => Number(a.num) - Number(b.num));
+        const sorted = [...db.players].sort((a,b) => (Number(a.num)||999) - (Number(b.num)||999));
         live.pitchPositions = {};
         f.forEach((pos, idx) => { if(sorted[idx]) live.pitchPositions[pos.id] = sorted[idx].id; });
 
@@ -294,20 +307,20 @@
         document.getElementById('livePitchArea').innerHTML = f.map(pos => {
             const pId = live.pitchPositions[pos.id];
             const p = db.players.find(x => x.id === pId);
-            if(!p) return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openBenchSelector('${pos.id}')"><div class="icon-circle" style="background:rgba(255,255,255,0.2);">＋</div><div class="icon-name">${pos.label}</div></div>`;
+            if(!p) return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openBenchSelector('${pos.id}')"><div class="icon-jersey" style="background:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.3);">＋</div><div class="icon-name">${pos.label}</div></div>`;
             const g = live.playerGoals[p.id] || 0;
-            return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openOnPitchAction('${p.id}')"><div class="icon-circle">${p.num}</div><div class="icon-name"><span>${p.name}</span>${g>0?`<span class="goal-mini">${g}</span>`:''}</div></div>`;
+            return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openOnPitchAction('${p.id}')"><div class="icon-jersey">${p.num || ''}</div><div class="icon-name"><span>${p.name}</span>${g>0?`<span class="goal-mini">${g}</span>`:''}</div></div>`;
         }).join('');
 
         const onIds = Object.values(live.pitchPositions);
-        document.getElementById('onPitchGrid').innerHTML = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="player-chip on-pitch" onclick="openOnPitchAction('${p.id}')">${p.name}</div>`).join('');
-        document.getElementById('benchGrid').innerHTML = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="player-chip bench" onclick="openPositionSelector('${p.id}')">${p.name}</div>`).join('');
+        document.getElementById('onPitchGrid').innerHTML = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="player-chip on-pitch" onclick="openOnPitchAction('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
+        document.getElementById('benchGrid').innerHTML = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="player-chip bench" onclick="openPositionSelector('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
     }
 
     function modifyOwnScore(val) {
         if(val > 0) {
             const onIds = Object.values(live.pitchPositions);
-            const listHtml = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="recordGoal('${p.id}')">${p.num} ${p.name}</div>`).join('');
+            const listHtml = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="recordGoal('${p.id}')">${p.num?p.num+' ':''}${p.name}</div>`).join('');
             showActionModal("得点者を選択", listHtml || `<div class="action-btn" onclick="live.score.own++; addEvent('自チーム得点'); syncToCloud(); updateUI(); closeModals();">不明・その他</div>`);
         } else if(live.score.own > 0) {
             live.score.own--; addEvent("得点取消"); syncToCloud(); updateUI();
@@ -324,11 +337,11 @@
     function openOnPitchAction(pId) {
         const p = db.players.find(x => x.id === pId);
         const posId = Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === pId);
-        showActionModal(`${p.num} ${p.name}`, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="delete live.pitchPositions['${posId}']; syncToCloud(); updateUI(); closeModals();">🔻 ベンチへ</div>`);
+        showActionModal(`${p.num?p.num+' ':''}${p.name}`, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="delete live.pitchPositions['${posId}']; syncToCloud(); updateUI(); closeModals();">🔻 ベンチへ</div>`);
     }
     function openBenchSelector(posId) {
         const onIds = Object.values(live.pitchPositions);
-        const listHtml = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="live.pitchPositions['${posId}']='${p.id}'; syncToCloud(); updateUI(); closeModals();">${p.num} ${p.name}</div>`).join('');
+        const listHtml = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="action-btn" onclick="live.pitchPositions['${posId}']='${p.id}'; syncToCloud(); updateUI(); closeModals();">${p.num?p.num+' ':''}${p.name}</div>`).join('');
         showActionModal("配置する選手", listHtml || "ベンチに選手がいません");
     }
     function openPositionSelector(pId) {
@@ -361,7 +374,6 @@
     async function endPeriod() { 
         if(confirm("保存して終了しますか？")) { 
             await syncToCloud(); 
-            // リロード後にレポート一覧を表示するためのフラグ
             localStorage.setItem('ps_show_reports', 'true');
             location.reload(); 
         } 
@@ -389,7 +401,12 @@
     function addMaster(type) {
         if(type==='players') {
             const num = document.getElementById('pInNum').value; const name = document.getElementById('pInName').value.trim();
-            if(num && name) { db.players.push({ id: Date.now().toString(), num, name }); localStorage.setItem('ps_players_v8', JSON.stringify(db.players)); }
+            if(name) { 
+                db.players.push({ id: Date.now().toString(), num, name }); 
+                localStorage.setItem('ps_players_v8', JSON.stringify(db.players)); 
+            } else {
+                alert("名前を入力してください"); return;
+            }
             document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = '';
         } else if(type==='opps') {
             const name = document.getElementById('oppInName').value.trim();
@@ -402,6 +419,18 @@
         }
         refreshSettingsUI(); updateQuickLists();
     }
+    function editPlayer(id) {
+        const p = db.players.find(x => x.id === id);
+        const newNum = prompt("背番号を修正", p.num || "");
+        const newName = prompt("名前を修正", p.name);
+        if(newName !== null && newName.trim() !== "") {
+            p.num = newNum;
+            p.name = newName.trim();
+            localStorage.setItem('ps_players_v8', JSON.stringify(db.players));
+            refreshSettingsUI();
+            if(document.getElementById('liveScreen').style.display === 'block') updateUI();
+        }
+    }
     function deleteMaster(type, index) { 
         if(confirm("削除しますか？")) { 
             db[type].splice(index, 1); 
@@ -411,7 +440,7 @@
         } 
     }
     function refreshSettingsUI() {
-        document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del">${p.num} ${p.name} <span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div>`).join('');
+        document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del"><span>${p.num?p.num+' ':''}${p.name}</span><div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o,i) => `<div class="chip-del">${o} <span class="del-btn" onclick="deleteMaster('opps', ${i})">×</span></div>`).join('');
         document.getElementById('venueMasterList').innerHTML = db.venues.map((v,i) => `<div class="chip-del">${v} <span class="del-btn" onclick="deleteMaster('venues', ${i})">×</span></div>`).join('');
     }
