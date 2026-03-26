@@ -161,9 +161,9 @@
     </div>
 
     <div class="bottom-nav" id="bottomNav" style="display:none;">
-        <div class="nav-item active" onclick="showTab('tabLive', this)">Live</div>
-        <div class="nav-item" onclick="showTab('tabHistory', this)">Reports</div>
-        <div class="nav-item" onclick="showTab('tabSettings', this)">Settings</div>
+        <div class="nav-item active" id="navLive" onclick="showTab('tabLive', this)">Live</div>
+        <div class="nav-item" id="navHistory" onclick="showTab('tabHistory', this)">Reports</div>
+        <div class="nav-item" id="navSettings" onclick="showTab('tabSettings', this)">Settings</div>
     </div>
 </div>
 
@@ -196,14 +196,34 @@
         "2-3-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
     };
 
+    // 起動時にログイン状態を確認
+    window.onload = () => {
+        if (localStorage.getItem('ps_logged_in') === 'true') {
+            enterMainUI();
+            // レポート作成後などのリロード時にレポート一覧を表示させるための処理
+            if (localStorage.getItem('ps_show_reports') === 'true') {
+                localStorage.removeItem('ps_show_reports');
+                showTab('tabHistory', document.getElementById('navHistory'));
+            }
+        }
+    };
+
     function checkPass() {
         if(document.getElementById('passcode').value === "2026kickoff") {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('mainUI').style.display = 'block';
-            document.getElementById('bottomNav').style.display = 'flex';
-            document.getElementById('myTeamInput').value = db.myTeam;
-            refreshSettingsUI(); updateQuickLists();
+            localStorage.setItem('ps_logged_in', 'true');
+            enterMainUI();
+        } else {
+            alert("パスコードが違います");
         }
+    }
+
+    function enterMainUI() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('bottomNav').style.display = 'flex';
+        document.getElementById('myTeamInput').value = db.myTeam;
+        refreshSettingsUI(); 
+        updateQuickLists();
     }
 
     // 試合開始
@@ -337,7 +357,16 @@
         }
     }
     async function deleteReport(id) { if(confirm("完全に削除しますか？")) { await supabaseClient.from('match_reports').delete().eq('id', id); fetchReports(); } }
-    async function endPeriod() { if(confirm("保存して終了しますか？")) { await syncToCloud(); location.reload(); } }
+    
+    async function endPeriod() { 
+        if(confirm("保存して終了しますか？")) { 
+            await syncToCloud(); 
+            // リロード後にレポート一覧を表示するためのフラグ
+            localStorage.setItem('ps_show_reports', 'true');
+            location.reload(); 
+        } 
+    }
+    
     function addEvent(txt) {
         const time = formatTime(live.timerLeft);
         live.events.push({ time, text: txt });
