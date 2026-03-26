@@ -12,11 +12,19 @@
             --blue: #3498db; --green: #2ecc71;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        html, body { overflow-x: hidden; width: 100%; position: relative; overscroll-behavior-y: none; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 10px; }
+        html, body { overflow-x: hidden; width: 100%; position: relative; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 10px; transition: transform 0.2s cubic-bezier(0,0,0.2,1); }
         .tab-content { display: none; padding: 10px; }
         .tab-content.active { display: block; }
+
+        /* Pull to Refresh Indicator */
+        #ptr-indicator {
+            position: absolute; top: -60px; left: 0; width: 100%; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 900; color: var(--text-sub);
+            pointer-events: none;
+        }
 
         /* カード・アコーディオン */
         .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); position: relative; }
@@ -81,7 +89,9 @@
 </head>
 <body>
 
-<div class="container">
+<div id="ptr-indicator">引き下げて更新</div>
+
+<div class="container" id="appContainer">
     <div id="loginSection" style="padding:100px 30px; text-align:center;">
         <h1 style="color:var(--accent); font-size:2rem; font-weight:900;">PITCHSIDE v8.7</h1>
         <input type="password" id="passcode" placeholder="パスコード" style="text-align:center;">
@@ -213,6 +223,51 @@
         "3-2-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'20%',label:'DFL'}, {id:'df2',t:'75%',l:'50%',label:'DFC'}, {id:'df3',t:'75%',l:'80%',label:'DFR'}, {id:'mf1',t:'45%',l:'35%',label:'MCL'}, {id:'mf2',t:'45%',l:'65%',label:'MCR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ],
         "2-3-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
     };
+
+    // Pull to Refresh Implementation
+    let startY = 0;
+    let pulling = false;
+    const appContainer = document.getElementById('appContainer');
+    const ptrIndicator = document.getElementById('ptr-indicator');
+
+    window.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0) {
+            startY = e.touches[0].pageY;
+            pulling = true;
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!pulling) return;
+        const currentY = e.touches[0].pageY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            const move = Math.pow(diff, 0.8); // 抵抗感をつける
+            appContainer.style.transform = `translateY(${move}px)`;
+            if (move > 50) {
+                ptrIndicator.innerText = "指を離して更新";
+                ptrIndicator.style.color = "var(--accent)";
+            } else {
+                ptrIndicator.innerText = "引き下げて更新";
+                ptrIndicator.style.color = "var(--text-sub)";
+            }
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        if (!pulling) return;
+        const transform = appContainer.style.transform;
+        const match = transform.match(/translateY\((.*)px\)/);
+        const move = match ? parseFloat(match[1]) : 0;
+        
+        appContainer.style.transform = '';
+        pulling = false;
+
+        if (move > 50) {
+            ptrIndicator.innerText = "更新中...";
+            setTimeout(() => location.reload(), 100);
+        }
+    });
 
     window.onload = () => {
         if (localStorage.getItem('ps_logged_in') === 'true') {
@@ -454,3 +509,4 @@
 </script>
 </body>
 </html>
+
