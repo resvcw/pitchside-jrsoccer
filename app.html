@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.0 eFootball Edition</title>
+    <title>PitchSide Pro v9.1 eFootball Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -90,6 +90,7 @@
         input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0,212,255,0.2); }
         button { background: var(--gradient); color: #fff; border: none; padding: 18px; border-radius: 18px; font-weight: 900; width: 100%; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
         button:active { transform: scale(0.96); filter: brightness(1.2); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .quick-chip { background: var(--glass); border: 1px solid var(--glass); padding: 10px 15px; border-radius: 12px; font-size: 12px; font-weight: 800; margin: 0 8px 10px 0; display: inline-block; cursor: pointer; color: var(--text-sub); }
         .quick-chip:active { color: var(--accent); border-color: var(--accent); }
@@ -126,9 +127,9 @@
             <div style="font-size:40px; font-weight:900;">P</div>
         </div>
         <h1 style="color:#fff; font-size:2.2rem; font-weight:900; letter-spacing:2px; margin-bottom:5px;">PITCHSIDE</h1>
-        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PRO v9.0 eFootball Edition</p>
+        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PRO v9.1 eFootball Edition</p>
         <input type="password" id="passcode" placeholder="ENTER PASSCODE" style="text-align:center; letter-spacing:4px;">
-        <button onclick="checkPass()" style="margin-top:15px; font-size:16px;">LOGIN</button>
+        <button id="loginBtn" style="margin-top:15px; font-size:16px;">LOGIN</button>
     </div>
 
     <div id="mainUI" style="display:none;">
@@ -281,6 +282,50 @@
         "2-3-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
     };
 
+    // Login Logic Fix
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', checkPass);
+        }
+        
+        // Enter key support for login
+        const passcodeField = document.getElementById('passcode');
+        if (passcodeField) {
+            passcodeField.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkPass();
+            });
+        }
+
+        // Auto login check
+        if (localStorage.getItem('ps_logged_in') === 'true') {
+            enterMainUI();
+            if (localStorage.getItem('ps_show_reports') === 'true') {
+                localStorage.removeItem('ps_show_reports');
+                showTab('tabHistory', document.getElementById('navHistory'));
+            }
+        }
+    });
+
+    function checkPass() {
+        const val = document.getElementById('passcode').value;
+        if(val === "2026kickoff") { 
+            localStorage.setItem('ps_logged_in', 'true'); 
+            enterMainUI(); 
+        } else { 
+            alert("ACCESS DENIED"); 
+        }
+    }
+
+    function enterMainUI() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('bottomNav').style.display = 'flex';
+        document.getElementById('myTeamInput').value = db.myTeam;
+        refreshSettingsUI(); 
+        updateQuickLists();
+    }
+
     // Drag and Drop
     let draggedElement = null, draggedPlayerId = null, dragSourcePosId = null;
 
@@ -351,29 +396,6 @@
         if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "REFRESHING..."; setTimeout(() => location.reload(), 300); }
     });
 
-    window.onload = () => {
-        if (localStorage.getItem('ps_logged_in') === 'true') {
-            enterMainUI();
-            if (localStorage.getItem('ps_show_reports') === 'true') {
-                localStorage.removeItem('ps_show_reports');
-                showTab('tabHistory', document.getElementById('navHistory'));
-            }
-        }
-    };
-
-    function checkPass() {
-        if(document.getElementById('passcode').value === "2026kickoff") { localStorage.setItem('ps_logged_in', 'true'); enterMainUI(); }
-        else alert("ACCESS DENIED");
-    }
-
-    function enterMainUI() {
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('mainUI').style.display = 'block';
-        document.getElementById('bottomNav').style.display = 'flex';
-        document.getElementById('myTeamInput').value = db.myTeam;
-        refreshSettingsUI(); updateQuickLists();
-    }
-
     // Photo Preview & Storage
     let currentPhotoData = null;
     function previewPhoto(input) {
@@ -411,10 +433,10 @@
 
     async function syncToCloud() {
         if(!live.currentId) return;
-        const status = document.getElementById('syncStatus'); status.innerText = "● SYNCING..."; status.style.color = var(--yellow);
+        const status = document.getElementById('syncStatus'); status.innerText = "● SYNCING..."; status.style.color = "#ffd700";
         live.memo = document.getElementById('liveMemo').value;
         const { error } = await supabaseClient.from('match_reports').update({ score: `${live.score.own} - ${live.score.opp}`, detail: live.events.map(e => `${e.time} ${e.text}`).join('\n'), memo: live.memo }).eq('id', live.currentId);
-        if(!error) { status.innerText = "● LIVE SYNCED"; status.style.color = var(--green); }
+        if(!error) { status.innerText = "● LIVE SYNCED"; status.style.color = "#00ffa3"; }
     }
 
     function updateUI() {
@@ -446,7 +468,7 @@
 
     function openPlayerAction(pId) {
         const p = db.players.find(x => x.id === pId), posId = Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === pId);
-        const html = `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ GOAL</div><div class="action-btn" onclick="openBenchSelector('${posId}')">🔄 SUBSTITUTE</div><div class="action-btn" onclick="delete live.pitchPositions['${posId}']; updateUI(); syncToCloud(); closeModals();">🔻 TO BENCH</div><div style="display:flex; gap:10px; margin-top:15px;"><div class="action-btn" style="flex:1; background:var(--yellow); color:#000;" onclick="giveCard('${pId}', 'yellow')">🟨</div><div class="action-btn" style="flex:1; background:var(--secondary); color:#fff;" onclick="giveCard('${pId}', 'red')">🟥</div><div class="action-btn" style="flex:1; background:var(--green); color:#fff;" onclick="giveCard('${pId}', 'green')">🟩</div></div>`;
+        const html = `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ GOAL</div><div class="action-btn" onclick="openBenchSelector('${posId}')">🔄 SUBSTITUTE</div><div class="action-btn" onclick="delete live.pitchPositions['${posId}']; updateUI(); syncToCloud(); closeModals();">🔻 TO BENCH</div><div style="display:flex; gap:10px; margin-top:15px;"><div class="action-btn" style="flex:1; background:#ffd700; color:#000;" onclick="giveCard('${pId}', 'yellow')">🟨</div><div class="action-btn" style="flex:1; background:#ff007a; color:#fff;" onclick="giveCard('${pId}', 'red')">🟥</div><div class="action-btn" style="flex:1; background:#00ffa3; color:#fff;" onclick="giveCard('${pId}', 'green')">🟩</div></div>`;
         showActionModal(`${p.num?p.num+' ':''}${p.name}`, html);
     }
 
@@ -477,14 +499,14 @@
             document.getElementById('historyList').innerHTML = data.map(r => `
                 <details class="report-item">
                     <summary>
-                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#8e9aaf;"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
                         <div class="report-score">${r.score}</div>
-                        <div style="font-size:11px; color:var(--text-sub); font-weight:700;">STADIUM: ${r.venue}</div>
+                        <div style="font-size:11px; color:#8e9aaf; font-weight:700;">STADIUM: ${r.venue}</div>
                     </summary>
-                    <div style="padding:20px; background:rgba(0,0,0,0.2); border-top:1px solid var(--glass);">
-                        <div style="font-weight:900; color:var(--accent); margin-bottom:5px;">EVENTS:</div><div style="white-space:pre-wrap; color:var(--text-main); margin-bottom:15px; font-size:13px;">${r.detail}</div>
-                        <div style="font-weight:900; color:var(--accent); margin-bottom:5px;">NOTES:</div><div style="white-space:pre-wrap; color:var(--text-main); font-size:13px;">${r.memo}</div>
-                        <button class="del-row-btn" onclick="deleteReport('${r.id}')" style="margin-top:20px;">DELETE REPORT</button>
+                    <div style="padding:20px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">EVENTS:</div><div style="white-space:pre-wrap; color:#fff; margin-bottom:15px; font-size:13px;">${r.detail}</div>
+                        <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">NOTES:</div><div style="white-space:pre-wrap; color:#fff; font-size:13px;">${r.memo}</div>
+                        <button class="del-row-btn" onclick="deleteReport('${r.id}')" style="margin-top:20px; background:#ff007a; color:#fff;">DELETE REPORT</button>
                     </div>
                 </details>
             `).join('');
@@ -543,7 +565,7 @@
     function refreshSettingsUI() {
         document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del">
             <div style="display:flex; align-items:center; gap:10px;">
-                ${p.photo ? `<img src="${p.photo}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid var(--accent);">` : `<div style="width:30px; height:30px; border-radius:50%; background:var(--glass); border:1px dashed var(--text-sub);"></div>`}
+                ${p.photo ? `<img src="${p.photo}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #00d4ff;">` : `<div style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px dashed #8e9aaf;"></div>`}
                 <span>${p.num?p.num+' ':''}${p.name}</span>
             </div>
             <div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div>
