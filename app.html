@@ -42,7 +42,8 @@
 
         /* ピッチと選手アイコン (ユニフォーム風) */
         .pitch { width: 100%; aspect-ratio: 3/4; background: linear-gradient(180deg, #1b5e20 0%, #2e7d32 100%), linear-gradient(to right, transparent calc(50% - 1px), rgba(255,255,255,0.2) calc(50% - 1px), rgba(255,255,255,0.2) calc(50% + 1px), transparent calc(50% + 1px)), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0 46px, transparent 47px); position: relative; border-radius: 12px; overflow: hidden; margin-top: 10px; }
-        .player-icon { position: absolute; width: 48px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; }
+        .player-icon { position: absolute; width: 48px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; touch-action: none; transition: transform 0.1s; }
+        .player-icon.dragging { opacity: 0.5; transform: translate(-50%, -50%) scale(1.2); z-index: 100; }
         
         /* ユニフォーム風デザイン */
         .icon-jersey { 
@@ -62,9 +63,10 @@
         .goal-mini { background: #fff; color: var(--accent); border-radius: 50%; width: 10px; height: 10px; font-size: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
 
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; }
-        .player-chip { background: #fff; border: 2px solid #edf2f7; border-radius: 12px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; }
+        .player-chip { background: #fff; border: 2px solid #edf2f7; border-radius: 12px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; touch-action: none; }
         .player-chip.on-pitch { border-color: var(--text-main); }
         .player-chip.bench { background: #f8fafc; color: var(--text-sub); border-style: dashed; }
+        .player-chip.dragging { opacity: 0.5; transform: scale(1.1); z-index: 100; }
         .chip-num { position: absolute; top: -5px; left: -5px; background: var(--accent); color: #fff; font-size: 8px; padding: 1px 4px; border-radius: 4px; }
         
         /* 共通UI (16pxズーム防止) */
@@ -122,7 +124,7 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="startMatch()" style="background:var(--accent); margin-top:15px;">キックオフ</button>
+                    <button id="kickoffBtn" onclick="startMatch()" style="background:var(--accent); margin-top:15px;">キックオフ</button>
                 </div>
             </div>
 
@@ -155,7 +157,7 @@
                     </div>
                 </div>
                 <div class="pitch" id="livePitchArea"></div>
-                <div class="section-title" style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px;">選手交代 (タップして入替)</div>
+                <div class="section-title" style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px;">選手交代 (ドラッグして入替)</div>
                 <div class="player-grid" id="onPitchGrid"></div>
                 <div class="player-grid" id="benchGrid"></div>
                 <textarea id="liveMemo" placeholder="試合メモ（自動保存）..." oninput="syncToCloud()" style="height:100px; margin-top:15px;"></textarea>
@@ -224,6 +226,81 @@
         "2-3-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
     };
 
+    // Drag and Drop Logic
+    let draggedElement = null;
+    let draggedPlayerId = null;
+    let dragSourcePosId = null;
+
+    function initDraggable(el, pId, posId = null) {
+        el.addEventListener('touchstart', (e) => {
+            draggedElement = el;
+            draggedPlayerId = pId;
+            dragSourcePosId = posId;
+            el.classList.add('dragging');
+        }, { passive: true });
+
+        el.addEventListener('touchmove', (e) => {
+            if (!draggedElement) return;
+            const touch = e.touches[0];
+            const x = touch.clientX;
+            const y = touch.clientY;
+            el.style.position = 'fixed';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+        }, { passive: false });
+
+        el.addEventListener('touchend', (e) => {
+            if (!draggedElement) return;
+            el.classList.remove('dragging');
+            el.style.position = '';
+            el.style.left = '';
+            el.style.top = '';
+
+            const touch = e.changedTouches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropZone = target ? target.closest('.player-icon, .player-chip, .pitch') : null;
+
+            if (dropZone) {
+                handleDrop(dropZone);
+            } else {
+                updateUI(); // Reset positions
+            }
+
+            draggedElement = null;
+            draggedPlayerId = null;
+            dragSourcePosId = null;
+        });
+    }
+
+    function handleDrop(target) {
+        const targetPosId = target.getAttribute('data-pos-id');
+        const targetPlayerId = target.getAttribute('data-player-id');
+
+        if (targetPosId) {
+            // Drop onto a position on the pitch
+            if (dragSourcePosId) {
+                // Swap between two positions on the pitch
+                const temp = live.pitchPositions[targetPosId];
+                live.pitchPositions[targetPosId] = draggedPlayerId;
+                live.pitchPositions[dragSourcePosId] = temp;
+            } else {
+                // Bench to pitch
+                live.pitchPositions[targetPosId] = draggedPlayerId;
+            }
+        } else if (target.closest('.pitch')) {
+            // Drop onto empty pitch area (find closest position if needed, or just reset)
+            updateUI();
+        } else if (target.classList.contains('player-chip') || target.closest('#benchGrid')) {
+            // Pitch to bench
+            if (dragSourcePosId) {
+                delete live.pitchPositions[dragSourcePosId];
+            }
+        }
+        
+        syncToCloud();
+        updateUI();
+    }
+
     // Pull to Refresh Implementation
     let startY = 0;
     let pulling = false;
@@ -242,15 +319,9 @@
         const currentY = e.touches[0].pageY;
         const diff = currentY - startY;
         if (diff > 0) {
-            const move = Math.pow(diff, 0.8); // 抵抗感をつける
+            const move = Math.pow(diff, 0.8);
             appContainer.style.transform = `translateY(${move}px)`;
-            if (move > 50) {
-                ptrIndicator.innerText = "指を離して更新";
-                ptrIndicator.style.color = "var(--accent)";
-            } else {
-                ptrIndicator.innerText = "引き下げて更新";
-                ptrIndicator.style.color = "var(--text-sub)";
-            }
+            ptrIndicator.innerText = move > 50 ? "指を離して更新" : "引き下げて更新";
         }
     }, { passive: true });
 
@@ -259,14 +330,9 @@
         const transform = appContainer.style.transform;
         const match = transform.match(/translateY\((.*)px\)/);
         const move = match ? parseFloat(match[1]) : 0;
-        
         appContainer.style.transform = '';
         pulling = false;
-
-        if (move > 50) {
-            ptrIndicator.innerText = "更新中...";
-            setTimeout(() => location.reload(), 100);
-        }
+        if (move > 50) { location.reload(); }
     });
 
     window.onload = () => {
@@ -297,28 +363,23 @@
         updateQuickLists();
     }
 
+    // Fast Kickoff Implementation
     async function startMatch() {
         const opp = document.getElementById('oppName').value.trim();
         const venue = document.getElementById('venueName').value.trim();
         if(!opp || !venue) { alert("相手チームと会場を入力してください"); return; }
 
+        const btn = document.getElementById('kickoffBtn');
+        btn.disabled = true;
+        btn.innerText = "準備中...";
+
+        // Update local master data immediately
         let changed = false;
         if(!db.opps.includes(opp)) { db.opps.push(opp); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); changed = true; }
         if(!db.venues.includes(venue)) { db.venues.push(venue); localStorage.setItem('ps_venues_master', JSON.stringify(db.venues)); changed = true; }
         if(changed) { refreshSettingsUI(); updateQuickLists(); }
 
-        try {
-            const { data, error } = await supabaseClient.from('match_reports').insert([{
-                my_team: db.myTeam, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始", memo: ""
-            }]).select();
-
-            if(error) throw error;
-            live.currentId = data[0].id;
-        } catch (e) {
-            alert("同期開始エラー: Supabaseの設定を確認してください。 " + e.message);
-            return;
-        }
-        
+        // Initialize live state immediately
         live.formation = document.getElementById('formationSelect').value;
         live.timerLeft = parseInt(document.getElementById('halfMinutes').value, 10) * 60;
         live.score = { own: 0, opp: 0 };
@@ -331,11 +392,27 @@
         live.pitchPositions = {};
         f.forEach((pos, idx) => { if(sorted[idx]) live.pitchPositions[pos.id] = sorted[idx].id; });
 
+        // SWITCH UI IMMEDIATELY
         document.getElementById('setupScreen').style.display = 'none';
         document.getElementById('liveScreen').style.display = 'block';
         document.getElementById('oppDisplay').innerText = opp;
         document.getElementById('myTeamDisplay').innerText = db.myTeam;
         updateUI();
+
+        // Perform Supabase registration in the background
+        supabaseClient.from('match_reports').insert([{
+            my_team: db.myTeam, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始", memo: ""
+        }]).select().then(({ data, error }) => {
+            if(!error && data) {
+                live.currentId = data[0].id;
+                document.getElementById('syncStatus').innerText = "● 同期済み";
+            } else {
+                document.getElementById('syncStatus').innerText = "● オフライン保存中";
+                document.getElementById('syncStatus').style.color = "#e67e22";
+            }
+            btn.disabled = false;
+            btn.innerText = "キックオフ";
+        });
     }
 
     async function syncToCloud() {
@@ -362,14 +439,25 @@
         document.getElementById('livePitchArea').innerHTML = f.map(pos => {
             const pId = live.pitchPositions[pos.id];
             const p = db.players.find(x => x.id === pId);
-            if(!p) return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openBenchSelector('${pos.id}')"><div class="icon-jersey" style="background:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.3);">＋</div><div class="icon-name">${pos.label}</div></div>`;
+            if(!p) return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" data-pos-id="${pos.id}" onclick="openBenchSelector('${pos.id}')"><div class="icon-jersey" style="background:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.3);">＋</div><div class="icon-name">${pos.label}</div></div>`;
             const g = live.playerGoals[p.id] || 0;
-            return `<div class="player-icon" style="top:${pos.t}; left:${pos.l};" onclick="openOnPitchAction('${p.id}')"><div class="icon-jersey">${p.num || ''}</div><div class="icon-name"><span>${p.name}</span>${g>0?`<span class="goal-mini">${g}</span>`:''}</div></div>`;
+            return `<div class="player-icon" id="icon-${p.id}" style="top:${pos.t}; left:${pos.l};" data-pos-id="${pos.id}" data-player-id="${p.id}" onclick="openOnPitchAction('${p.id}')"><div class="icon-jersey">${p.num || ''}</div><div class="icon-name"><span>${p.name}</span>${g>0?`<span class="goal-mini">${g}</span>`:''}</div></div>`;
         }).join('');
 
         const onIds = Object.values(live.pitchPositions);
-        document.getElementById('onPitchGrid').innerHTML = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="player-chip on-pitch" onclick="openOnPitchAction('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
-        document.getElementById('benchGrid').innerHTML = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="player-chip bench" onclick="openPositionSelector('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
+        document.getElementById('onPitchGrid').innerHTML = db.players.filter(p => onIds.includes(p.id)).map(p => `<div class="player-chip on-pitch" id="chip-${p.id}" data-player-id="${p.id}" onclick="openOnPitchAction('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
+        document.getElementById('benchGrid').innerHTML = db.players.filter(p => !onIds.includes(p.id)).map(p => `<div class="player-chip bench" id="chip-${p.id}" data-player-id="${p.id}" onclick="openPositionSelector('${p.id}')">${p.num?`<span class="chip-num">${p.num}</span>`:''}${p.name}</div>`).join('');
+
+        // Re-initialize drag events
+        db.players.forEach(p => {
+            const iconEl = document.getElementById(`icon-${p.id}`);
+            const chipEl = document.getElementById(`chip-${p.id}`);
+            if (iconEl) {
+                const posId = Object.keys(live.pitchPositions).find(k => live.pitchPositions[k] === p.id);
+                initDraggable(iconEl, p.id, posId);
+            }
+            if (chipEl) initDraggable(chipEl, p.id);
+        });
     }
 
     function modifyOwnScore(val) {
