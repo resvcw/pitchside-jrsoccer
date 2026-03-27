@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.2.9 - プロ試合記録</title>
+    <title>PitchSide Pro v9.2.10 - プロ試合記録</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            /* Professional, Clean, Premium Theme (Navy & Mint) */
             --primary: #1a2a3a; /* Deep Navy */
             --accent: #2ecc71; /* Professional Mint Green */
             --secondary: #e74c3c; /* Professional Red */
@@ -16,7 +15,6 @@
             --text-main: #2c3e50;
             --text-sub: #7f8c8d;
             --border: #e0e6ed;
-            --glass: rgba(255, 255, 255, 0.8);
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             --gradient: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%);
         }
@@ -90,14 +88,17 @@
         .action-btn { background: #f8f9fa; border: 1px solid var(--border); padding: 14px; border-radius: 10px; font-weight: 700; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .action-btn:active { background: var(--primary); color: #fff; }
 
-        .photo-input-wrap { width: 56px; height: 56px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 2px dashed #ddd; }
+        /* Updated Player Registration Layout */
+        .player-reg-grid { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: flex-start; }
+        .photo-input-section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .photo-input-wrap { width: 64px; height: 64px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 2px dashed #ddd; overflow: visible; }
         .photo-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
-        .photo-clear-btn { position: absolute; top: -4px; right: -4px; background: var(--secondary); color: #fff; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 800; display: none; align-items: center; justify-content: center; z-index: 10; border: 1px solid #fff; }
+        .photo-clear-btn { position: absolute; top: -4px; right: -4px; background: var(--secondary); color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 800; display: none; align-items: center; justify-content: center; z-index: 10; border: 2px solid #fff; }
+        .photo-label { font-size: 10px; font-weight: 800; color: var(--text-sub); text-align: center; }
 
         .category-header { font-size: 11px; font-weight: 800; color: var(--primary); background: #f0f4f8; padding: 6px 12px; border-radius: 6px; margin: 15px 0 8px 0; border-left: 4px solid var(--primary); }
         .chip-del { background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .del-btn { color: var(--secondary); font-weight: 800; padding: 5px; cursor: pointer; }
-        .edit-btn { color: var(--primary); font-weight: 800; padding: 5px; cursor: pointer; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -109,7 +110,7 @@
         <div style="width:70px; height:70px; background:var(--gradient); border-radius:18px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 20px rgba(0,0,0,0.1);">
             <div style="font-size:32px; font-weight:800; color:#fff;">P</div>
         </div>
-        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">v9.2.9</span></h1>
+        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">v9.2.10</span></h1>
         <div class="form-group">
             <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px; padding:18px;">
         </div>
@@ -121,7 +122,6 @@
             <div id="setupScreen">
                 <div class="card">
                     <h2 style="font-size:18px; font-weight:800; margin:0 0 20px 0; color:var(--primary);">試合設定</h2>
-                    
                     <div class="form-group">
                         <label class="form-label">自チーム・カテゴリを選択</label>
                         <div style="display:flex; gap:10px;">
@@ -133,19 +133,16 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label class="form-label">対戦相手</label>
                         <div id="quickOppList" style="margin-bottom:8px;"></div>
                         <input type="text" id="oppName" placeholder="対戦チーム名を入力">
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">会場</label>
                         <div id="quickVenueList" style="margin-bottom:8px;"></div>
                         <input type="text" id="venueName" placeholder="会場・グラウンド名を入力">
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">試合形式・大会名</label>
                         <div style="display:flex; gap:10px;">
@@ -160,7 +157,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div style="display:flex; gap:15px;">
                         <div class="form-group" style="flex:1;">
                             <label class="form-label">試合時間 (分)</label>
@@ -186,7 +182,6 @@
                 <div class="live-header">
                     <div id="syncStatus" style="font-size:10px; font-weight:800; color:var(--accent); margin-bottom:8px; letter-spacing:1px;">● ライブ同期中</div>
                     <div class="timer-display" id="timerText">15:00</div>
-                    
                     <div id="atDisplayBox" style="margin:10px 0;">
                         <div id="atLabel" style="font-size:11px; font-weight:800; color:var(--text-sub);">AT 設定なし</div>
                         <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:8px;">
@@ -195,12 +190,10 @@
                             <div class="score-btn" onclick="modifyAT(1)">+</div>
                         </div>
                     </div>
-
                     <div style="display:flex; justify-content:center; gap:15px; margin:20px 0;">
                         <button id="btnTimer" onclick="toggleTimer()" style="background:var(--primary); height:50px;">スタート</button>
                         <button onclick="endPeriod()" style="background:#f8f9fa; color:var(--primary); border:1px solid var(--border); height:50px; box-shadow:none;">終了</button>
                     </div>
-                    
                     <div class="score-board">
                         <div class="score-team-box">
                             <div class="score-team-name" id="myTeamDisplay">HOME</div>
@@ -264,28 +257,43 @@
 
                 <div class="form-group">
                     <label class="form-label">選手登録</label>
-                    <div style="display:flex; gap:10px; align-items:flex-start;">
-                        <div class="photo-input-wrap">
-                            <span style="font-size:18px; color:#bdc3c7;">📷</span>
-                            <img id="pInPhotoPreview" class="photo-preview">
-                            <div id="photoClearBtn" class="photo-clear-btn" onclick="clearPhotoSelection(event)">×</div>
-                            <input type="file" id="pInPhoto" accept="image/*" onchange="previewPhoto(this)">
-                        </div>
-                        <div style="flex:1;">
-                            <div style="display:flex; gap:5px; margin-bottom:5px;">
-                                <input type="number" id="pInNum" placeholder="No." style="width:60px;">
-                                <input type="text" id="pInName" placeholder="選手名" style="flex:1;">
+                    <div class="player-reg-grid">
+                        <div class="photo-input-section">
+                            <div class="photo-input-wrap">
+                                <span style="font-size:20px; color:#bdc3c7;">📷</span>
+                                <img id="pInPhotoPreview" class="photo-preview">
+                                <div id="photoClearBtn" class="photo-clear-btn" onclick="clearPhotoSelection(event)">×</div>
+                                <input type="file" id="pInPhoto" accept="image/*" onchange="previewPhoto(this)">
                             </div>
-                            <div style="display:flex; gap:5px;">
-                                <select id="pInTeam" style="flex:1;" onchange="updateCategorySelect('pInTeam', 'pInCategory')">
-                                    <option value="">チームを選択</option>
-                                </select>
-                                <select id="pInCategory" style="flex:1;">
-                                    <option value="">カテゴリ</option>
-                                </select>
-                            </div>
+                            <span class="photo-label">写真を選択</span>
                         </div>
-                        <button id="addPlayerBtn" onclick="addMaster('players')" style="width:60px; height:80px; padding:0;">登録</button>
+                        <div class="info-input-section">
+                            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                <div style="width:65px;">
+                                    <label class="form-label">背番号</label>
+                                    <input type="number" id="pInNum" placeholder="No.">
+                                </div>
+                                <div style="flex:1;">
+                                    <label class="form-label">選手名</label>
+                                    <input type="text" id="pInName" placeholder="選手名を入力">
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                                <div style="flex:1;">
+                                    <label class="form-label">チーム</label>
+                                    <select id="pInTeam" onchange="updateCategorySelect('pInTeam', 'pInCategory')">
+                                        <option value="">選択</option>
+                                    </select>
+                                </div>
+                                <div style="flex:1;">
+                                    <label class="form-label">カテゴリ</label>
+                                    <select id="pInCategory">
+                                        <option value="">選択</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="addPlayerBtn" onclick="addMaster('players')" style="height:48px;">選手を追加登録</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -354,124 +362,54 @@
         }
     });
 
-    function checkPass() {
-        if(document.getElementById('passcode').value === '2026') {
-            localStorage.setItem('ps_logged_in', 'true');
-            location.reload();
-        } else { alert("パスコードが違います"); }
-    }
-
-    function enterMainUI() {
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('mainUI').style.display = 'block';
-        document.getElementById('bottomNav').style.display = 'flex';
-        refreshSettingsUI();
-        updateQuickLists();
-    }
+    function checkPass() { if(document.getElementById('passcode').value === '2026') { localStorage.setItem('ps_logged_in', 'true'); location.reload(); } else { alert("パスコードが違います"); } }
+    function enterMainUI() { document.getElementById('loginSection').style.display = 'none'; document.getElementById('mainUI').style.display = 'block'; document.getElementById('bottomNav').style.display = 'flex'; refreshSettingsUI(); updateQuickLists(); }
 
     let draggedElement = null, draggedPlayerId = null, dragSourcePosId = null, scrollInterval = null;
-
     function initDraggable(el, pId, posId = null) {
-        el.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) return;
-            draggedElement = el; draggedPlayerId = pId; dragSourcePosId = posId;
-            el.style.opacity = '0.6';
-        }, { passive: true });
-
+        el.addEventListener('touchstart', (e) => { if (e.touches.length > 1) return; draggedElement = el; draggedPlayerId = pId; dragSourcePosId = posId; el.style.opacity = '0.6'; }, { passive: true });
         el.addEventListener('touchmove', (e) => {
-            if (!draggedElement) return;
-            const touch = e.touches[0];
-            el.style.position = 'fixed'; el.style.left = touch.clientX + 'px'; el.style.top = touch.clientY + 'px'; el.style.zIndex = '9999';
+            if (!draggedElement) return; const touch = e.touches[0]; el.style.position = 'fixed'; el.style.left = touch.clientX + 'px'; el.style.top = touch.clientY + 'px'; el.style.zIndex = '9999';
             const scrollThreshold = 100, scrollSpeed = 10;
             if (touch.clientY < scrollThreshold) { if (!scrollInterval) scrollInterval = setInterval(() => window.scrollBy(0, -scrollSpeed), 20); }
             else if (touch.clientY > window.innerHeight - scrollThreshold) { if (!scrollInterval) scrollInterval = setInterval(() => window.scrollBy(0, scrollSpeed), 20); }
             else { clearInterval(scrollInterval); scrollInterval = null; }
             e.preventDefault();
         }, { passive: false });
-
         el.addEventListener('touchend', (e) => {
-            if (!draggedElement) return;
-            clearInterval(scrollInterval); scrollInterval = null;
-            el.style.opacity = '1'; el.style.position = ''; el.style.left = ''; el.style.top = ''; el.style.zIndex = '';
-            const touch = e.changedTouches[0];
-            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-            const dropZone = target ? target.closest('.player-icon, .player-chip, .pitch') : null;
-            if (dropZone) handleDrop(dropZone);
-            else updateUI();
-            draggedElement = null; draggedPlayerId = null; dragSourcePosId = null;
+            if (!draggedElement) return; clearInterval(scrollInterval); scrollInterval = null; el.style.opacity = '1'; el.style.position = ''; el.style.left = ''; el.style.top = ''; el.style.zIndex = '';
+            const touch = e.changedTouches[0]; const target = document.elementFromPoint(touch.clientX, touch.clientY); const dropZone = target ? target.closest('.player-icon, .player-chip, .pitch') : null;
+            if (dropZone) handleDrop(dropZone); else updateUI(); draggedElement = null; draggedPlayerId = null; dragSourcePosId = null;
         });
     }
 
     function handleDrop(target) {
         const targetPosId = target.getAttribute('data-pos-id');
-        if (targetPosId) {
-            if (dragSourcePosId) {
-                const temp = live.pitchPositions[targetPosId];
-                live.pitchPositions[targetPosId] = draggedPlayerId;
-                live.pitchPositions[dragSourcePosId] = temp;
-            } else {
-                live.pitchPositions[targetPosId] = draggedPlayerId;
-                const p = db.players.find(x => x.id === draggedPlayerId);
-                addEvent(`${p.name} が出場`);
-            }
-        } else if (target.classList.contains('player-chip') || target.closest('#benchGrid')) {
-            if (dragSourcePosId) {
-                const p = db.players.find(x => x.id === draggedPlayerId);
-                delete live.pitchPositions[dragSourcePosId];
-                addEvent(`${p.name} がベンチへ`);
-            }
-        }
+        if (targetPosId) { if (dragSourcePosId) { const temp = live.pitchPositions[targetPosId]; live.pitchPositions[targetPosId] = draggedPlayerId; live.pitchPositions[dragSourcePosId] = temp; } else { live.pitchPositions[targetPosId] = draggedPlayerId; addEvent(`${db.players.find(x => x.id === draggedPlayerId).name} 出場`); } }
+        else if (target.classList.contains('player-chip') || target.closest('#benchGrid')) { if (dragSourcePosId) { addEvent(`${db.players.find(x => x.id === draggedPlayerId).name} ベンチへ`); delete live.pitchPositions[dragSourcePosId]; } }
         syncToCloud(); updateUI();
     }
 
     let startY = 0, pulling = false;
     const appContainer = document.getElementById('appContainer'), ptrIndicator = document.getElementById('ptr-indicator'), ptrSpinner = document.getElementById('ptr-spinner'), ptrText = document.getElementById('ptr-text');
-
-    window.addEventListener('touchstart', (e) => {
-        if ((localStorage.getItem('ps_active_tab') || 'tabLive') !== 'tabHistory') return;
-        if (window.scrollY === 0) { startY = e.touches[0].pageY; pulling = true; }
-    }, { passive: true });
-
-    window.addEventListener('touchmove', (e) => {
-        if (!pulling) return;
-        const currentY = e.touches[0].pageY, diff = currentY - startY;
-        if (diff > 0) {
-            ptrIndicator.style.display = 'flex';
-            const move = Math.pow(diff, 0.8);
-            appContainer.style.transform = `translateY(${move}px)`;
-            ptrText.innerText = move > 50 ? "指を離して更新" : "スワイプして更新";
-        }
-    }, { passive: true });
-
-    window.addEventListener('touchend', () => {
-        if (!pulling) return;
-        const transform = appContainer.style.transform, match = transform.match(/translateY\((.*)px\)/), move = match ? parseFloat(match[1]) : 0;
-        appContainer.style.transform = ''; pulling = false;
-        if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "更新中..."; setTimeout(() => location.reload(), 300); }
-        else { ptrIndicator.style.display = 'none'; }
-    });
+    window.addEventListener('touchstart', (e) => { if ((localStorage.getItem('ps_active_tab') || 'tabLive') !== 'tabHistory') return; if (window.scrollY === 0) { startY = e.touches[0].pageY; pulling = true; } }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (!pulling) return; const currentY = e.touches[0].pageY, diff = currentY - startY; if (diff > 0) { ptrIndicator.style.display = 'flex'; const move = Math.pow(diff, 0.8); appContainer.style.transform = `translateY(${move}px)`; ptrText.innerText = move > 50 ? "指を離して更新" : "スワイプして更新"; } }, { passive: true });
+    window.addEventListener('touchend', () => { if (!pulling) return; const transform = appContainer.style.transform, match = transform.match(/translateY\((.*)px\)/), move = match ? parseFloat(match[1]) : 0; appContainer.style.transform = ''; pulling = false; if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "更新中..."; setTimeout(() => location.reload(), 300); } else { ptrIndicator.style.display = 'none'; } });
 
     async function startMatch() {
-        const myTeam = document.getElementById('setupMyTeam').value, myCat = document.getElementById('setupCategory').value;
-        const opp = document.getElementById('oppName').value.trim(), venue = document.getElementById('venueName').value.trim();
-        const mins = parseInt(document.getElementById('halfMinutes').value), type = document.getElementById('matchType').value, tour = document.getElementById('tournamentSelect').value;
+        const myTeam = document.getElementById('setupMyTeam').value, myCat = document.getElementById('setupCategory').value, opp = document.getElementById('oppName').value.trim(), venue = document.getElementById('venueName').value.trim(), mins = parseInt(document.getElementById('halfMinutes').value), type = document.getElementById('matchType').value, tour = document.getElementById('tournamentSelect').value;
         if(!myTeam || !opp || !venue) { alert("自チーム、相手、会場を入力してください"); return; }
         const btn = document.getElementById('kickoffBtn'); btn.disabled = true;
         const teamDisp = myCat ? `${myTeam} (${myCat})` : myTeam, venueDisp = tour ? `${venue} [${type}] [${tour}]` : `${venue} [${type}]`;
         const { data, error } = await supabaseClient.from('match_reports').insert([{ my_team: teamDisp, opponent: opp, venue: venueDisp, score: "0 - 0", detail: "試合開始", memo: "" }]).select();
         if(!error && data) {
-            live.currentId = data[0].id; live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false;
-            live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value;
-            live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
-            document.getElementById('myTeamDisplay').innerText = teamDisp; document.getElementById('oppDisplay').innerText = opp;
-            document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block';
-            updateUI(); btn.disabled = false;
+            live.currentId = data[0].id; live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false; live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value; live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
+            document.getElementById('myTeamDisplay').innerText = teamDisp; document.getElementById('oppDisplay').innerText = opp; document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block'; updateUI(); btn.disabled = false;
         } else { alert("エラー: 保存できませんでした"); btn.disabled = false; }
     }
 
     function updateUI() {
-        document.getElementById('timerText').innerText = formatTime(live.timerLeft);
-        const atL = document.getElementById('atLabel'), atV = document.getElementById('atValueDisplay');
+        document.getElementById('timerText').innerText = formatTime(live.timerLeft); const atL = document.getElementById('atLabel'), atV = document.getElementById('atValueDisplay');
         if (live.isAT) { atL.innerText = "AT 進行中"; atL.style.color = 'var(--secondary)'; document.getElementById('timerText').style.color = 'var(--secondary)'; atV.innerText = `+${formatTime(live.atSeconds)}`; }
         else { atL.innerText = live.maxAtSeconds > 0 ? `AT (+${Math.floor(live.maxAtSeconds/60)}分)` : "AT 設定なし"; atL.style.color = 'var(--text-sub)'; document.getElementById('timerText').style.color = 'var(--primary)'; atV.innerText = `+${Math.floor(live.maxAtSeconds/60)}`; }
         document.getElementById('scoreOwn').innerText = live.score.own; document.getElementById('scoreOpp').innerText = live.score.opp;
@@ -480,216 +418,118 @@
             const pId = live.pitchPositions[pos.id], p = db.players.find(x => x.id === pId), slot = document.createElement('div');
             slot.className = 'player-icon'; slot.style.top = pos.t; slot.style.left = pos.l; slot.setAttribute('data-pos-id', pos.id);
             if(!p) slot.innerHTML = `<div class="icon-jersey" style="border-style:dashed; opacity:0.3;" onclick="choosePlayerFor('${pos.id}')">+</div><div class="icon-name">${pos.label}</div>`;
-            else {
-                const g = live.playerGoals[p.id] || 0, c = live.playerCards[p.id];
-                slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}', '${pos.id}')">${p.photo ? `<img src="${p.photo}" class="player-photo">` : ''}<span class="jersey-num-overlay">${p.num || ''}</span></div>${c ? `<div style="position:absolute;top:0;right:0;width:10px;height:14px;background:var(--${c==='yellow'?'yellow':'secondary'});border-radius:2px;"></div>` : ''}<div class="icon-name" onclick="showPlayerActions('${p.id}', '${pos.id}')">${p.name}${g>0 ? ` (${g})` : ''}</div>`;
-                initDraggable(slot, p.id, pos.id);
-            }
+            else { const g = live.playerGoals[p.id] || 0, c = live.playerCards[p.id]; slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}', '${pos.id}')">${p.photo ? `<img src="${p.photo}" class="player-photo">` : ''}<span class="jersey-num-overlay">${p.num || ''}</span></div>${c ? `<div style="position:absolute;top:0;right:0;width:10px;height:14px;background:var(--${c==='yellow'?'yellow':'secondary'});border-radius:2px;"></div>` : ''}<div class="icon-name" onclick="showPlayerActions('${p.id}', '${pos.id}')">${p.name}${g>0 ? ` (${g})` : ''}</div>`; initDraggable(slot, p.id, pos.id); }
             pitch.appendChild(slot);
         });
         const onIds = Object.values(live.pitchPositions), benchGrid = document.getElementById('benchGrid'); benchGrid.innerHTML = '';
-        let players = db.players;
-        if (live.selectedTeam) { players = players.filter(p => p.team === live.selectedTeam); if (live.selectedCategory) players = players.filter(p => p.category === live.selectedCategory); }
-        players.filter(p => !onIds.includes(p.id)).forEach(p => {
-            const chip = document.createElement('div'); chip.className = 'player-chip bench'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`;
-            chip.onclick = () => showBenchActions(p.id); initDraggable(chip, p.id); benchGrid.appendChild(chip);
-        });
+        let players = db.players; if (live.selectedTeam) { players = players.filter(p => p.team === live.selectedTeam); if (live.selectedCategory) players = players.filter(p => p.category === live.selectedCategory); }
+        players.filter(p => !onIds.includes(p.id)).forEach(p => { const chip = document.createElement('div'); chip.className = 'player-chip bench'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showBenchActions(p.id); initDraggable(chip, p.id); benchGrid.appendChild(chip); });
         const onPitchGrid = document.getElementById('onPitchGrid'); onPitchGrid.innerHTML = '';
-        Object.entries(live.pitchPositions).forEach(([posId, pId]) => {
-            const p = db.players.find(x => x.id === pId);
-            if(p) { const chip = document.createElement('div'); chip.className = 'player-chip on-pitch'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showPlayerActions(p.id, posId); initDraggable(chip, p.id, posId); onPitchGrid.appendChild(chip); }
-        });
+        Object.entries(live.pitchPositions).forEach(([posId, pId]) => { const p = db.players.find(x => x.id === pId); if(p) { const chip = document.createElement('div'); chip.className = 'player-chip on-pitch'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showPlayerActions(p.id, posId); initDraggable(chip, p.id, posId); onPitchGrid.appendChild(chip); } });
     }
 
     function modifyAT(v) { if (!live.isAT) { live.maxAtSeconds = Math.max(0, live.maxAtSeconds + (v * 60)); updateUI(); } }
     function choosePlayerFor(posId) {
-        const onIds = Object.values(live.pitchPositions);
-        let bench = db.players.filter(p => !onIds.includes(p.id));
+        const onIds = Object.values(live.pitchPositions); let bench = db.players.filter(p => !onIds.includes(p.id));
         if (live.selectedTeam) { bench = bench.filter(p => p.team === live.selectedTeam); if (live.selectedCategory) bench = bench.filter(p => p.category === live.selectedCategory); }
         const html = bench.map(p => `<div class="action-btn" onclick="assignPlayer('${posId}', '${p.id}')">${p.num ? p.num+' ' : ''}${p.name}</div>`).join('');
         showActionModal("選手を選択", html || "<p style='text-align:center;'>対象がいません</p>");
     }
     function assignPlayer(posId, pId) { live.pitchPositions[posId] = pId; addEvent(`${db.players.find(x => x.id === pId).name} 出場`); closeModals(); updateUI(); syncToCloud(); }
-    function showPlayerActions(pId, posId) {
-        const p = db.players.find(x => x.id === pId);
-        const html = `<div class="action-btn" onclick="showGoalTypeSelection('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="choosePlayerFor('${posId}')">🔄 選手交代</div><div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエロー</div><div class="action-btn" onclick="recordCard('${pId}', 'red')">🟥 レッド</div><div class="action-btn" onclick="unassignPlayer('${posId}')" style="color:var(--secondary);">交代（ベンチへ）</div>`;
-        showActionModal(p.name, html);
-    }
-    function showBenchActions(pId) {
-        const p = db.players.find(x => x.id === pId), f = formations[live.formation];
-        const html = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">${f.map(pos => `<div class="action-btn" style="margin-bottom:0; font-size:12px;" onclick="assignPlayer('${pos.id}', '${pId}')">${pos.label}</div>`).join('')}</div><hr style="border:0; border-top:1px solid var(--border); margin:15px 0;"><div class="action-btn" onclick="showGoalTypeSelection('${pId}')">⚽ ゴール (ベンチから)</div>`;
-        showActionModal(p.name, html);
-    }
-    function showGoalTypeSelection(pId) {
-        const html = `<div class="action-btn" onclick="recordGoal('${pId}', false)">⚽ 通常ゴール</div><div class="action-btn" onclick="recordGoal('${pId}', true)" style="background:var(--primary); color:#fff;">🎯 PKゴール</div>`;
-        showActionModal(`${db.players.find(x => x.id === pId).name} の得点`, html);
-    }
-    function recordGoal(pId, isPK = false, isOG = false) {
-        if (isOG) { live.score.opp++; addEvent("OWN GOAL"); }
-        else { const p = db.players.find(x => x.id === pId); if (p) { live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1; addEvent(`GOAL: ${p.name}${isPK ? ' (PK)' : ''}`); } live.score.own++; }
-        closeModals(); updateUI(); syncToCloud();
-    }
+    function showPlayerActions(pId, posId) { const p = db.players.find(x => x.id === pId); const html = `<div class="action-btn" onclick="showGoalTypeSelection('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="choosePlayerFor('${posId}')">🔄 選手交代</div><div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエロー</div><div class="action-btn" onclick="recordCard('${pId}', 'red')">🟥 レッド</div><div class="action-btn" onclick="unassignPlayer('${posId}')" style="color:var(--secondary);">交代（ベンチへ）</div>`; showActionModal(p.name, html); }
+    function showBenchActions(pId) { const p = db.players.find(x => x.id === pId), f = formations[live.formation]; const html = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">${f.map(pos => `<div class="action-btn" style="margin-bottom:0; font-size:12px;" onclick="assignPlayer('${pos.id}', '${pId}')">${pos.label}</div>`).join('')}</div><hr style="border:0; border-top:1px solid var(--border); margin:15px 0;"><div class="action-btn" onclick="showGoalTypeSelection('${pId}')">⚽ ゴール (ベンチから)</div>`; showActionModal(p.name, html); }
+    function showGoalTypeSelection(pId) { const html = `<div class="action-btn" onclick="recordGoal('${pId}', false)">⚽ 通常ゴール</div><div class="action-btn" onclick="recordGoal('${pId}', true)" style="background:var(--primary); color:#fff;">🎯 PKゴール</div>`; showActionModal(`${db.players.find(x => x.id === pId).name} の得点`, html); }
+    function recordGoal(pId, isPK = false, isOG = false) { if (isOG) { live.score.opp++; addEvent("OWN GOAL"); } else { const p = db.players.find(x => x.id === pId); if (p) { live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1; addEvent(`GOAL: ${p.name}${isPK ? ' (PK)' : ''}`); } live.score.own++; } closeModals(); updateUI(); syncToCloud(); }
     function recordCard(pId, color) { const p = db.players.find(x => x.id === pId); live.playerCards[pId] = color; addEvent(`${color.toUpperCase()} CARD: ${p.name}`); closeModals(); updateUI(); syncToCloud(); }
     function unassignPlayer(posId) { const pId = live.pitchPositions[posId]; delete live.pitchPositions[posId]; addEvent(`${db.players.find(x => x.id === pId).name} ベンチへ`); closeModals(); updateUI(); syncToCloud(); }
     function modifyOwnScore(v) {
         if (v > 0) {
-            let players = db.players;
-            if (live.selectedTeam) { players = players.filter(p => p.team === live.selectedTeam); if (live.selectedCategory) players = players.filter(p => p.category === live.selectedCategory); }
+            let players = db.players; if (live.selectedTeam) { players = players.filter(p => p.team === live.selectedTeam); if (live.selectedCategory) players = players.filter(p => p.category === live.selectedCategory); }
             const onIds = Object.values(live.pitchPositions), onP = players.filter(p => onIds.includes(p.id)), bench = players.filter(p => !onIds.includes(p.id));
             let html = `<div style="font-size:11px; font-weight:800; color:var(--text-sub); margin-bottom:10px;">ピッチ上の選手</div>` + onP.map(p => `<div class="action-btn" onclick="showGoalTypeSelection('${p.id}')">${p.num ? p.num+' ' : ''}${p.name}</div>`).join('');
             html += `<div style="font-size:11px; font-weight:800; color:var(--text-sub); margin:15px 0 10px;">ベンチの選手</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">` + bench.map(p => `<div class="action-btn" style="font-size:12px; margin-bottom:0;" onclick="showGoalTypeSelection('${p.id}')">${p.num ? p.num+' ' : ''}${p.name}</div>`).join('') + `</div>`;
             showActionModal("得点者を選択", html);
         } else if (live.score.own > 0) { live.score.own--; addEvent("得点取消"); updateUI(); syncToCloud(); }
     }
-    function modifyOppScore(v) {
-        if (v > 0) showActionModal("失点内容", `<div class="action-btn" onclick="live.score.opp++; addEvent('失点'); closeModals(); updateUI(); syncToCloud();">⚽ 通常失点</div><div class="action-btn" onclick="recordGoal(null, false, true)">⚠️ オウンゴール</div>`);
-        else if (live.score.opp > 0) { live.score.opp--; addEvent("失点取消"); updateUI(); syncToCloud(); }
-    }
+    function modifyOppScore(v) { if (v > 0) showActionModal("失点内容", `<div class="action-btn" onclick="live.score.opp++; addEvent('失点'); closeModals(); updateUI(); syncToCloud();">⚽ 通常失点</div><div class="action-btn" onclick="recordGoal(null, false, true)">⚠️ オウンゴール</div>`); else if (live.score.opp > 0) { live.score.opp--; addEvent("失点取消"); updateUI(); syncToCloud(); } }
 
-    async function syncToCloud() {
-        if(!live.currentId) return;
-        const report = { score: `${live.score.own} - ${live.score.opp}`, detail: live.events.map(e => `[${e.time}] ${e.text}`).join('\n'), memo: document.getElementById('liveMemo').value };
-        await supabaseClient.from('match_reports').update(report).eq('id', live.currentId);
-    }
-
+    async function syncToCloud() { if(!live.currentId) return; const report = { score: `${live.score.own} - ${live.score.opp}`, detail: live.events.map(e => `[${e.time}] ${e.text}`).join('\n'), memo: document.getElementById('liveMemo').value }; await supabaseClient.from('match_reports').update(report).eq('id', live.currentId); }
     async function fetchReports() {
         const teamF = document.getElementById('historyFilterMyTeam').value, catF = document.getElementById('historyFilterCategory').value, typeF = document.getElementById('historyFilterType').value;
         let query = supabaseClient.from('match_reports').select('*').order('created_at', { ascending: false });
-        if (teamF !== 'all') query = query.ilike('my_team', `%${teamF}%`);
-        if (catF !== 'all') query = query.ilike('my_team', `%(${catF})%`);
-        if (typeF !== 'all') query = query.ilike('venue', `%[${typeF}]%`);
-        const { data } = await query;
-        if(data) {
-            document.getElementById('historyList').innerHTML = data.map(r => `
-                <details class="report-item">
-                    <summary>
-                        <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
-                        <div class="report-score">${r.score}</div>
-                        <div style="font-size:10px; color:var(--text-sub); font-weight:700;">${r.venue}</div>
-                    </summary>
-                    <div style="padding:20px; background:#f8f9fa; border-top:1px solid var(--border);">
-                        <label class="form-label">イベント記録</label>
-                        <textarea id="editDetail_${r.id}" style="height:120px; font-size:13px; margin-bottom:15px;">${r.detail}</textarea>
-                        <label class="form-label">メモ</label>
-                        <textarea id="editMemo_${r.id}" style="height:80px; font-size:13px; margin-bottom:15px;">${r.memo || ''}</textarea>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="saveEditedReport('${r.id}')" style="flex:2; height:46px; font-size:14px;">保存</button>
-                            <button onclick="deleteReport('${r.id}')" style="flex:1; height:46px; font-size:14px; background:var(--secondary);">削除</button>
-                        </div>
-                    </div>
-                </details>
-            `).join('');
-        }
+        if (teamF !== 'all') query = query.ilike('my_team', `%${teamF}%`); if (catF !== 'all') query = query.ilike('my_team', `%(${catF})%`); if (typeF !== 'all') query = query.ilike('venue', `%[${typeF}]%`);
+        const { data } = await query; if(data) { document.getElementById('historyList').innerHTML = data.map(r => `<details class="report-item"><summary><div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div><div class="report-score">${r.score}</div><div style="font-size:10px; color:var(--text-sub); font-weight:700;">${r.venue}</div></summary><div style="padding:20px; background:#f8f9fa; border-top:1px solid var(--border);"><label class="form-label">イベント記録</label><textarea id="editDetail_${r.id}" style="height:120px; font-size:13px; margin-bottom:15px;">${r.detail}</textarea><label class="form-label">メモ</label><textarea id="editMemo_${r.id}" style="height:80px; font-size:13px; margin-bottom:15px;">${r.memo || ''}</textarea><div style="display:flex; gap:10px;"><button onclick="saveEditedReport('${r.id}')" style="flex:2; height:46px; font-size:14px;">保存</button><button onclick="deleteReport('${r.id}')" style="flex:1; height:46px; font-size:14px; background:var(--secondary);">削除</button></div></div></details>`).join(''); }
     }
-
-    async function saveEditedReport(id) {
-        const detail = document.getElementById(`editDetail_${id}`).value, memo = document.getElementById(`editMemo_${id}`).value;
-        const { error } = await supabaseClient.from('match_reports').update({ detail, memo }).eq('id', id);
-        if(!error) alert("更新しました"); else alert("エラー");
-    }
-
-    async function deleteReport(id) {
-        if(confirm("このレポートを削除しますか？")) {
-            const { error } = await supabaseClient.from('match_reports').delete().eq('id', id);
-            if(!error) { alert("削除しました"); fetchReports(); } else alert("エラー");
-        }
-    }
-
-    function updateHistoryCategoryFilter() {
-        const team = document.getElementById('historyFilterMyTeam').value, filterC = document.getElementById('historyFilterCategory');
-        if (team === 'all') filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>';
-        else { const cats = db.teams.filter(t => t.team === team).map(t => t.category); filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join(''); }
-        fetchReports();
-    }
-
+    async function saveEditedReport(id) { const detail = document.getElementById(`editDetail_${id}`).value, memo = document.getElementById(`editMemo_${id}`).value; const { error } = await supabaseClient.from('match_reports').update({ detail, memo }).eq('id', id); if(!error) alert("更新しました"); else alert("エラー"); }
+    async function deleteReport(id) { if(confirm("このレポートを削除しますか？")) { const { error } = await supabaseClient.from('match_reports').delete().eq('id', id); if(!error) { alert("削除しました"); fetchReports(); } else alert("エラー"); } }
+    function updateHistoryCategoryFilter() { const team = document.getElementById('historyFilterMyTeam').value, filterC = document.getElementById('historyFilterCategory'); if (team === 'all') filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>'; else { const cats = db.teams.filter(t => t.team === team).map(t => t.category); filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join(''); } fetchReports(); }
     async function endPeriod() { if(confirm("試合を終了しますか？")) { await syncToCloud(); location.reload(); } }
-    function addEvent(txt) { 
-        const time = live.isAT ? `${formatTime(live.timerLeft + live.atSeconds)} (AT)` : formatTime(live.timerLeft);
-        live.events.push({ time, text: txt }); 
-        const entry = document.createElement('div'); entry.textContent = `${time} ${txt}`; document.getElementById('eventLog').prepend(entry); 
-    }
+    function addEvent(txt) { const time = live.isAT ? `${formatTime(live.timerLeft + live.atSeconds)} (AT)` : formatTime(live.timerLeft); live.events.push({ time, text: txt }); const entry = document.createElement('div'); entry.textContent = `${time} ${txt}`; document.getElementById('eventLog').prepend(entry); }
     function formatTime(s) { const m = Math.floor(Math.abs(s)/60), sc = Math.abs(s)%60; return `${m.toString().padStart(2,'0')}:${sc.toString().padStart(2,'0')}`; }
-    function toggleTimer() {
-        const btn = document.getElementById('btnTimer');
-        if(live.timerInterval) { clearInterval(live.timerInterval); live.timerInterval = null; btn.innerText = "再開"; }
-        else { live.timerInterval = setInterval(() => { 
-            if(!live.isAT) { if(live.timerLeft > 0) live.timerLeft--; else { live.isAT = true; addEvent("AT開始"); } }
-            else { live.atSeconds++; } updateUI(); 
-        }, 1000); btn.innerText = "停止"; }
-    }
-
-    function showTab(tabId, el) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(tabId).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
-        localStorage.setItem('ps_active_tab', tabId);
-        if(tabId === 'tabHistory') {
-            const teamF = document.getElementById('historyFilterMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))];
-            teamF.innerHTML = '<option value="all">すべてのチーム</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
-            fetchReports();
-        }
-    }
+    function toggleTimer() { const btn = document.getElementById('btnTimer'); if(live.timerInterval) { clearInterval(live.timerInterval); live.timerInterval = null; btn.innerText = "再開"; } else { live.timerInterval = setInterval(() => { if(!live.isAT) { if(live.timerLeft > 0) live.timerLeft--; else { live.isAT = true; addEvent("AT開始"); } } else { live.atSeconds++; } updateUI(); }, 1000); btn.innerText = "停止"; } }
+    function showTab(tabId, el) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(tabId).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); localStorage.setItem('ps_active_tab', tabId); if(tabId === 'tabHistory') { const teamF = document.getElementById('historyFilterMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; teamF.innerHTML = '<option value="all">すべてのチーム</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join(''); fetchReports(); } }
 
     function addMaster(type) {
-        if(type==='teams') {
-            const team = document.getElementById('teamInName').value.trim(), cat = document.getElementById('categoryInName').value.trim();
-            if(team && cat) { db.teams.push({ team, category: cat }); localStorage.setItem('ps_teams_master_v9', JSON.stringify(db.teams)); document.getElementById('categoryInName').value = ''; }
-        } else if(type==='players') {
+        if(type==='teams') { const team = document.getElementById('teamInName').value.trim(), cat = document.getElementById('categoryInName').value.trim(); if(team && cat) { db.teams.push({ team, category: cat }); localStorage.setItem('ps_teams_master_v9', JSON.stringify(db.teams)); document.getElementById('categoryInName').value = ''; } }
+        else if(type==='players') {
             const num = document.getElementById('pInNum').value, name = document.getElementById('pInName').value.trim(), team = document.getElementById('pInTeam').value, cat = document.getElementById('pInCategory').value;
             if(name) {
-                const btn = document.getElementById('addPlayerBtn'); btn.disabled = true;
-                try { db.players.push({ id: Date.now().toString(), num, name, photo: currentPhotoData, team, category: cat }); localStorage.setItem('ps_players_v9.7', JSON.stringify(db.players)); document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = ''; clearPhotoSelection(); }
-                catch(e) { alert("サイズエラー"); } finally { btn.disabled = false; }
-            }
-        } else if(type==='opps') {
-            const name = document.getElementById('oppInName').value.trim();
-            if(name && !db.opps.includes(name)) { db.opps.push(name); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); }
-            document.getElementById('oppInName').value = '';
-        } else if(type==='tournaments') {
-            const name = document.getElementById('tournamentInName').value.trim();
-            if(name && !db.tournaments.includes(name)) { db.tournaments.push(name); localStorage.setItem('ps_tournaments_master', JSON.stringify(db.tournaments)); }
-            document.getElementById('tournamentInName').value = '';
-        }
+                const btn = document.getElementById('addPlayerBtn'); btn.disabled = true; btn.innerText = "保存中...";
+                db.players.push({ id: Date.now().toString(), num, name, photo: currentPhotoData, team, category: cat });
+                localStorage.setItem('ps_players_v9.7', JSON.stringify(db.players));
+                document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = ''; clearPhotoSelection();
+                btn.disabled = false; btn.innerText = "選手を追加登録";
+            } else { alert("名前を入力してください"); }
+        } else if(type==='opps') { const name = document.getElementById('oppInName').value.trim(); if(name && !db.opps.includes(name)) { db.opps.push(name); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); } document.getElementById('oppInName').value = ''; }
+        else if(type==='tournaments') { const name = document.getElementById('tournamentInName').value.trim(); if(name && !db.tournaments.includes(name)) { db.tournaments.push(name); localStorage.setItem('ps_tournaments_master', JSON.stringify(db.tournaments)); } document.getElementById('tournamentInName').value = ''; }
         refreshSettingsUI(); updateQuickLists();
     }
 
-    function updateCategorySelect(teamId, catId) {
-        const team = document.getElementById(teamId).value, catS = document.getElementById(catId);
-        if (!team) { catS.innerHTML = '<option value="">カテゴリ</option>'; return; }
-        catS.innerHTML = '<option value="">カテゴリ</option>' + db.teams.filter(t => t.team === team).map(t => `<option value="${t.category}">${t.category}</option>`).join('');
-    }
-
+    function updateCategorySelect(teamId, catId) { const team = document.getElementById(teamId).value, catS = document.getElementById(catId); if (!team) { catS.innerHTML = '<option value="">選択</option>'; return; } catS.innerHTML = '<option value="">選択</option>' + db.teams.filter(t => t.team === team).map(t => `<option value="${t.category}">${t.category}</option>`).join(''); }
     function updateSetupCategoryFilter() { updateCategorySelect('setupMyTeam', 'setupCategory'); updateUI(); }
-
     function refreshSettingsUI() {
         document.getElementById('teamMasterList').innerHTML = db.teams.map((t,i) => `<div class="chip-del">${t.team} - ${t.category} <span class="del-btn" onclick="deleteMaster('teams', ${i})">×</span></div>`).join('');
         const grouped = {}; db.players.forEach(p => { const k = `${p.team || '未設定'} - ${p.category || '未設定'}`; if (!grouped[k]) grouped[k] = []; grouped[k].push(p); });
-        let html = '';
-        for (const [k, players] of Object.entries(grouped)) {
-            html += `<div class="category-header">${k}</div>`;
-            players.forEach(p => {
-                const idx = db.players.findIndex(x => x.id === p.id);
-                html += `<div class="chip-del"><div style="display:flex;align-items:center;gap:10px;">${p.photo ? `<img src="${p.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : `<div style="width:24px;height:24px;border-radius:50%;background:#eee;"></div>`}<span>${p.num?p.num+' ':''}${p.name}</span></div><div><span class="del-btn" onclick="deleteMaster('players', ${idx})">×</span></div></div>`;
-            });
-        }
+        let html = ''; for (const [k, players] of Object.entries(grouped)) { html += `<div class="category-header">${k}</div>`; players.forEach(p => { const idx = db.players.findIndex(x => x.id === p.id); html += `<div class="chip-del"><div style="display:flex;align-items:center;gap:10px;">${p.photo ? `<img src="${p.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : `<div style="width:24px;height:24px;border-radius:50%;background:#eee;"></div>`}<span>${p.num?p.num+' ':''}${p.name}</span></div><div><span class="del-btn" onclick="deleteMaster('players', ${idx})">×</span></div></div>`; }); }
         document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center;font-size:12px;color:#bdc3c7;">登録なし</p>';
         document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t,i) => `<div class="chip-del">${t} <span class="del-btn" onclick="deleteMaster('tournaments', ${i})">×</span></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o,i) => `<div class="chip-del">${o} <span class="del-btn" onclick="deleteMaster('opps', ${i})">×</span></div>`).join('');
-        const pT = document.getElementById('pInTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))];
-        pT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
+        const pT = document.getElementById('pInTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; pT.innerHTML = '<option value="">選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
     }
-
     function updateQuickLists() {
         document.getElementById('quickOppList').innerHTML = db.opps.map(x => `<span style="display:inline-block;padding:5px 10px;background:#eee;border-radius:6px;font-size:11px;margin:0 5px 5px 0;cursor:pointer;" onclick="document.getElementById('oppName').value='${x}';">${x}</span>`).join('');
         document.getElementById('tournamentSelect').innerHTML = '<option value="">大会名を選択</option>' + db.tournaments.map(t => `<option value="${t}">${t}</option>`).join('');
-        const setupT = document.getElementById('setupMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))];
-        setupT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
+        const setupT = document.getElementById('setupMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; setupT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
     }
-
     function deleteMaster(type, idx) { if(confirm("削除しますか？")) { db[type].splice(idx, 1); localStorage.setItem({teams:'ps_teams_master_v9',players:'ps_players_v9.7',opps:'ps_opps_master',tournaments:'ps_tournaments_master'}[type], JSON.stringify(db[type])); refreshSettingsUI(); updateQuickLists(); } }
     function closeModals() { document.getElementById('actionModal').style.display = 'none'; }
     function showActionModal(title, html) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalList').innerHTML = html; document.getElementById('actionModal').style.display = 'flex'; }
+    
     let currentPhotoData = null;
-    function previewPhoto(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = (e) => { currentPhotoData = e.target.result; document.getElementById('pInPhotoPreview').src = currentPhotoData; document.getElementById('pInPhotoPreview').style.display = 'block'; document.getElementById('photoClearBtn').style.display = 'flex'; }; r.readAsDataURL(input.files[0]); } }
+    function previewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 120, MAX_HEIGHT = 120;
+                    let width = img.width, height = img.height;
+                    if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+                    else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    currentPhotoData = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('pInPhotoPreview').src = currentPhotoData;
+                    document.getElementById('pInPhotoPreview').style.display = 'block';
+                    document.getElementById('photoClearBtn').style.display = 'flex';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
     function clearPhotoSelection(e) { if(e) e.stopPropagation(); currentPhotoData = null; document.getElementById('pInPhoto').value = ""; document.getElementById('pInPhotoPreview').style.display = 'none'; document.getElementById('photoClearBtn').style.display = 'none'; }
 </script>
 </body>
