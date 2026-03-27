@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.2.6 - 試合記録</title>
+    <title>PitchSide Pro v9.2.8 - 試合記録</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -28,7 +28,7 @@
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        #ptr-indicator { position: absolute; top: -60px; left: 0; width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; color: var(--accent); pointer-events: none; z-index: 3000; }
+        #ptr-indicator { position: absolute; top: -60px; left: 0; width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; color: var(--accent); pointer-events: none; z-index: 3000; display: none; }
         .spinner { width: 20px; height: 20px; border: 2px solid var(--glass); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -111,6 +111,8 @@
         .at-ctrl-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
         .at-btn-small { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--glass); background: var(--glass); color: #fff; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
         .at-btn-small:active { background: var(--secondary); }
+
+        .category-header { font-size: 12px; font-weight: 900; color: var(--accent); background: rgba(0,212,255,0.1); padding: 8px 15px; border-radius: 10px; margin: 15px 0 10px 0; border-left: 3px solid var(--accent); }
     </style>
 </head>
 <body>
@@ -122,7 +124,7 @@
         <div style="width:80px; height:80px; background:var(--gradient); border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 30px rgba(0,212,255,0.4);">
             <div style="font-size:40px; font-weight:900;">P</div>
         </div>
-        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.6</p>
+        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.8</p>
         <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px;">
         <button id="loginBtn" onclick="checkPass()" style="margin-top:15px; font-size:16px;">ログイン</button>
     </div>
@@ -133,21 +135,23 @@
                 <div class="card">
                     <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0; color:var(--accent);">試合設定</h2>
                     
-                    <label style="font-size:11px; font-weight:900; color:var(--text-sub);">自チーム・カテゴリ</label>
+                    <label style="font-size:11px; font-weight:900; color:var(--text-sub);">自チーム・カテゴリを選択</label>
                     <div style="display:flex; gap:10px; margin-bottom:12px;">
                         <select id="setupMyTeam" style="flex:1; margin-bottom:0;" onchange="updateSetupCategoryFilter()">
+                            <option value="">チームを選択</option>
                         </select>
                         <select id="setupCategory" style="flex:1; margin-bottom:0;" onchange="updateUI()">
+                            <option value="">カテゴリを選択</option>
                         </select>
                     </div>
 
                     <label style="font-size:11px; font-weight:900; color:var(--text-sub);">対戦相手</label>
                     <div id="quickOppList" style="margin-top:10px;"></div>
-                    <input type="text" id="oppName" placeholder="対戦チーム名">
+                    <input type="text" id="oppName" placeholder="対戦チーム名を入力">
                     
                     <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px; display:block;">会場</label>
                     <div id="quickVenueList" style="margin-top:10px;"></div>
-                    <input type="text" id="venueName" placeholder="スタジアム / グラウンド">
+                    <input type="text" id="venueName" placeholder="会場・グラウンド名を入力">
                     
                     <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px; display:block;">試合形式・大会名</label>
                     <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -232,7 +236,7 @@
         </div>
 
         <div id="tabHistory" class="tab-content">
-            <h2 style="font-size:18px; font-weight:900; margin-bottom:20px; color:var(--accent);">試合履歴</h2>
+            <h2 style="font-size:18px; font-weight:900; margin-bottom:20px; color:var(--accent);">試合レポート</h2>
             <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                 <select id="historyFilterMyTeam" onchange="updateHistoryCategoryFilter()" style="flex:1; min-width:140px; margin-bottom:5px;">
                     <option value="all">すべてのチーム</option>
@@ -258,15 +262,15 @@
             <div class="card">
                 <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0; color:var(--accent);">設定</h2>
                 
-                <label style="font-size:11px; font-weight:900; color:var(--text-sub);">自チーム・カテゴリ登録</label>
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub);">チーム・カテゴリを登録</label>
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <input type="text" id="teamInName" placeholder="チーム名" style="flex:1; margin-bottom:0;">
-                    <input type="text" id="categoryInName" placeholder="カテゴリ(A等)" style="flex:1; margin-bottom:0;">
+                    <input type="text" id="teamInName" placeholder="チーム名 (例: たこFC)" style="flex:1; margin-bottom:0;">
+                    <input type="text" id="categoryInName" placeholder="カテゴリ (例: Aチーム)" style="flex:1; margin-bottom:0;">
                     <button onclick="addMaster('teams')" style="width:60px; height:50px; padding:0;">追加</button>
                 </div>
                 <div id="teamMasterList" style="margin-bottom:25px;"></div>
 
-                <label style="font-size:11px; font-weight:900; color:var(--text-sub); display:block;">選手登録</label>
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub); display:block;">選手を新規登録</label>
                 <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
                     <div class="photo-input-wrap">
                         <span id="photoIcon">📷</span>
@@ -277,31 +281,32 @@
                     <div style="flex:1;">
                         <div style="display:flex; gap:5px; margin-bottom:5px;">
                             <input type="number" id="pInNum" placeholder="番号" style="width:65px; margin-bottom:0;">
-                            <input type="text" id="pInName" placeholder="選手名" style="flex:1; margin-bottom:0;">
+                            <input type="text" id="pInName" placeholder="選手名を入力" style="flex:1; margin-bottom:0;">
                         </div>
                         <div style="display:flex; gap:5px;">
                             <select id="pInTeam" style="flex:1; margin-bottom:0;" onchange="updateCategorySelect('pInTeam', 'pInCategory')">
-                                <option value="">チームを選択</option>
+                                <option value="">所属チームを選択</option>
                             </select>
                             <select id="pInCategory" style="flex:1; margin-bottom:0;">
-                                <option value="">カテゴリ</option>
+                                <option value="">カテゴリを選択</option>
                             </select>
                         </div>
                     </div>
-                    <button onclick="addMaster('players')" style="width:60px; height:85px; padding:0;">追加</button>
+                    <button id="addPlayerBtn" onclick="addMaster('players')" style="width:60px; height:85px; padding:0;">追加</button>
                 </div>
-                <div id="pMasterList" style="margin-top:20px;"></div>
+                
+                <div id="pMasterListGrouped" style="margin-top:20px;"></div>
 
                 <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:30px; display:block;">大会名リスト</label>
-                <div style="display:flex; gap:10px;"><input type="text" id="tournamentInName" placeholder="大会名" style="margin-bottom:0;"><button onclick="addMaster('tournaments')" style="width:60px; height:50px; padding:0;">追加</button></div>
+                <div style="display:flex; gap:10px;"><input type="text" id="tournamentInName" placeholder="大会名を入力" style="margin-bottom:0;"><button onclick="addMaster('tournaments')" style="width:60px; height:50px; padding:0;">追加</button></div>
                 <div id="tournamentMasterList" style="margin-top:15px;"></div>
 
                 <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:30px; display:block;">対戦相手リスト</label>
-                <div style="display:flex; gap:10px;"><input type="text" id="oppInName" placeholder="チーム名" style="margin-bottom:0;"><button onclick="addMaster('opps')" style="width:60px; height:50px; padding:0;">追加</button></div>
+                <div style="display:flex; gap:10px;"><input type="text" id="oppInName" placeholder="対戦相手名を入力" style="margin-bottom:0;"><button onclick="addMaster('opps')" style="width:60px; height:50px; padding:0;">追加</button></div>
                 <div id="oppMasterList" style="margin-top:15px;"></div>
 
                 <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:30px; display:block;">会場リスト</label>
-                <div style="display:flex; gap:10px;"><input type="text" id="venueInName" placeholder="会場名" style="margin-bottom:0;"><button onclick="addMaster('venues')" style="width:60px; height:50px; padding:0;">追加</button></div>
+                <div style="display:flex; gap:10px;"><input type="text" id="venueInName" placeholder="会場名を入力" style="margin-bottom:0;"><button onclick="addMaster('venues')" style="width:60px; height:50px; padding:0;">追加</button></div>
                 <div id="venueMasterList" style="margin-top:15px;"></div>
             </div>
         </div>
@@ -309,7 +314,7 @@
 
     <div class="bottom-nav" id="bottomNav" style="display:none;">
         <div class="nav-item active" id="navLive" onclick="showTab('tabLive', this)">ライブ</div>
-        <div class="nav-item" id="navHistory" onclick="showTab('tabHistory', this)">履歴</div>
+        <div class="nav-item" id="navHistory" onclick="showTab('tabHistory', this)">試合レポート</div>
         <div class="nav-item" id="navSettings" onclick="showTab('tabSettings', this)">設定</div>
     </div>
 </div>
@@ -328,8 +333,8 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let db = {
-        teams: JSON.parse(localStorage.getItem('ps_teams_master_v9')) || [], // [{team: "たこFC", category: "Aチーム"}]
-        players: JSON.parse(localStorage.getItem('ps_players_v9.6')) || [], // [{..., team: "", category: ""}]
+        teams: JSON.parse(localStorage.getItem('ps_teams_master_v9')) || [],
+        players: JSON.parse(localStorage.getItem('ps_players_v9.7')) || [],
         opps: JSON.parse(localStorage.getItem('ps_opps_master')) || [],
         venues: JSON.parse(localStorage.getItem('ps_venues_master')) || [],
         tournaments: JSON.parse(localStorage.getItem('ps_tournaments_master')) || []
@@ -450,6 +455,35 @@
         syncToCloud(); updateUI();
     }
 
+    // PTR (Pull to Refresh) ONLY for History (試合レポート) tab
+    let startY = 0, pulling = false;
+    const appContainer = document.getElementById('appContainer'), ptrIndicator = document.getElementById('ptr-indicator'), ptrSpinner = document.getElementById('ptr-spinner'), ptrText = document.getElementById('ptr-text');
+
+    window.addEventListener('touchstart', (e) => {
+        const activeTab = localStorage.getItem('ps_active_tab') || 'tabLive';
+        if (activeTab !== 'tabHistory') return; // ONLY enable for tabHistory
+        if (window.scrollY === 0) { startY = e.touches[0].pageY; pulling = true; }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!pulling) return;
+        const currentY = e.touches[0].pageY, diff = currentY - startY;
+        if (diff > 0) {
+            ptrIndicator.style.display = 'flex';
+            const move = Math.pow(diff, 0.8);
+            appContainer.style.transform = `translateY(${move}px)`;
+            ptrText.innerText = move > 50 ? "指を離して更新" : "下にスワイプして更新";
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        if (!pulling) return;
+        const transform = appContainer.style.transform, match = transform.match(/translateY\((.*)px\)/), move = match ? parseFloat(match[1]) : 0;
+        appContainer.style.transform = ''; pulling = false;
+        if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "更新中..."; setTimeout(() => location.reload(), 300); }
+        else { ptrIndicator.style.display = 'none'; }
+    });
+
     async function startMatch() {
         const myTeam = document.getElementById('setupMyTeam').value;
         const myCategory = document.getElementById('setupCategory').value;
@@ -563,7 +597,6 @@
         const benchGrid = document.getElementById('benchGrid');
         benchGrid.innerHTML = '';
         
-        // カテゴリ一致選手を優先表示、未設定なら全表示
         let playersToShow = db.players;
         if (live.selectedTeam) {
             playersToShow = playersToShow.filter(p => p.team === live.selectedTeam);
@@ -811,7 +844,6 @@
         fetchReports();
     }
 
-    async function deleteReport(id) { if(confirm("永久に削除しますか？")) { await supabaseClient.from('match_reports').delete().eq('id', id); fetchReports(); } }
     async function endPeriod() { if(confirm("試合を終了して保存しますか？")) { await syncToCloud(); localStorage.setItem('ps_show_reports', 'true'); location.reload(); } }
     
     function addEvent(txt) { 
@@ -878,11 +910,27 @@
             const team = document.getElementById('pInTeam').value;
             const cat = document.getElementById('pInCategory').value;
             if(name) {
-                db.players.push({ id: Date.now().toString(), num, name, photo: currentPhotoData, team, category: cat });
-                localStorage.setItem('ps_players_v9.6', JSON.stringify(db.players));
+                const btn = document.getElementById('addPlayerBtn');
+                btn.disabled = true;
+                try {
+                    db.players.push({ 
+                        id: Date.now().toString(), 
+                        num, 
+                        name, 
+                        photo: currentPhotoData, 
+                        team, 
+                        category: cat 
+                    });
+                    localStorage.setItem('ps_players_v9.7', JSON.stringify(db.players));
+                    document.getElementById('pInNum').value = ''; 
+                    document.getElementById('pInName').value = '';
+                    clearPhotoSelection();
+                } catch(e) {
+                    alert("保存エラー: 写真のサイズが大きすぎる可能性があります。");
+                } finally {
+                    btn.disabled = false;
+                }
             } else { alert("名前を入力してください"); return; }
-            document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = '';
-            clearPhotoSelection();
         } else if(type==='opps') {
             const name = document.getElementById('oppInName').value.trim();
             if(name && !db.opps.includes(name)) { db.opps.push(name); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); }
@@ -902,9 +950,9 @@
     function updateCategorySelect(teamElId, catElId) {
         const team = document.getElementById(teamElId).value;
         const catSelect = document.getElementById(catElId);
-        if (!team) { catSelect.innerHTML = '<option value="">カテゴリ</option>'; return; }
+        if (!team) { catSelect.innerHTML = '<option value="">カテゴリを選択</option>'; return; }
         const cats = db.teams.filter(t => t.team === team).map(t => t.category);
-        catSelect.innerHTML = '<option value="">カテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        catSelect.innerHTML = '<option value="">カテゴリを選択</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
     function updateSetupCategoryFilter() {
@@ -918,7 +966,7 @@
         const newName = prompt("名前を編集", p.name);
         if(newName !== null && newName.trim() !== "") {
             p.num = newNum; p.name = newName.trim();
-            localStorage.setItem('ps_players_v9.6', JSON.stringify(db.players));
+            localStorage.setItem('ps_players_v9.7', JSON.stringify(db.players));
             refreshSettingsUI(); if(document.getElementById('liveScreen').style.display === 'block') updateUI();
         }
     }
@@ -926,7 +974,7 @@
     function deleteMaster(type, index) { 
         if(confirm("削除しますか？")) { 
             db[type].splice(index, 1); 
-            const keys = { teams: 'ps_teams_master_v9', players: 'ps_players_v9.6', opps: 'ps_opps_master', venues: 'ps_venues_master', tournaments: 'ps_tournaments_master' };
+            const keys = { teams: 'ps_teams_master_v9', players: 'ps_players_v9.7', opps: 'ps_opps_master', venues: 'ps_venues_master', tournaments: 'ps_tournaments_master' };
             localStorage.setItem(keys[type], JSON.stringify(db[type])); 
             refreshSettingsUI(); updateQuickLists(); 
         } 
@@ -934,29 +982,39 @@
 
     function refreshSettingsUI() {
         document.getElementById('teamMasterList').innerHTML = db.teams.map((t,i) => `<div class="chip-del">${t.team} - ${t.category} <span class="del-btn" onclick="deleteMaster('teams', ${i})">×</span></div>`).join('');
-        document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del">
-            <div style="display:flex; align-items:center; gap:10px;">
-                ${p.photo ? `<img src="${p.photo}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #00d4ff;">` : `<div style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px dashed #8e9aaf;"></div>`}
-                <span>${p.num?p.num+' ':''}${p.name} <small style="color:var(--text-sub);">(${p.team || '未設定'}${p.category?'-'+p.category:''})</small></span>
-            </div>
-            <div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div>
-        </div>`).join('');
+        const grouped = {};
+        db.players.forEach(p => {
+            const key = `${p.team || '未設定'} - ${p.category || '未設定'}`;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(p);
+        });
+        let html = '';
+        for (const [key, players] of Object.entries(grouped)) {
+            html += `<div class="category-header">${key}</div>`;
+            players.forEach(p => {
+                const idx = db.players.findIndex(x => x.id === p.id);
+                html += `<div class="chip-del">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${p.photo ? `<img src="${p.photo}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #00d4ff;">` : `<div style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px dashed #8e9aaf;"></div>`}
+                        <span>${p.num?p.num+' ':''}${p.name}</span>
+                    </div>
+                    <div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${idx})">×</span></div>
+                </div>`;
+            });
+        }
+        document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center; font-size:12px; color:var(--text-sub);">選手が登録されていません</p>';
         document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t,i) => `<div class="chip-del">${t} <span class="del-btn" onclick="deleteMaster('tournaments', ${i})">×</span></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o,i) => `<div class="chip-del">${o} <span class="del-btn" onclick="deleteMaster('opps', ${i})">×</span></div>`).join('');
         document.getElementById('venueMasterList').innerHTML = db.venues.map((v,i) => `<div class="chip-del">${v} <span class="del-btn" onclick="deleteMaster('venues', ${i})">×</span></div>`).join('');
-        
-        // 選手登録フォームのチームセレクト更新
         const pTeam = document.getElementById('pInTeam');
         const uniqueTeams = [...new Set(db.teams.map(t => t.team))];
-        pTeam.innerHTML = '<option value="">チームを選択</option>' + uniqueTeams.map(t => `<option value="${t}">${t}</option>`).join('');
+        pTeam.innerHTML = '<option value="">所属チームを選択</option>' + uniqueTeams.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
     function updateQuickLists() {
         document.getElementById('quickOppList').innerHTML = db.opps.map(x => `<span class="quick-chip" onclick="document.getElementById('oppName').value='${x}';">${x}</span>`).join('');
         document.getElementById('quickVenueList').innerHTML = db.venues.map(x => `<span class="quick-chip" onclick="document.getElementById('venueName').value='${x}';">${x}</span>`).join('');
         document.getElementById('tournamentSelect').innerHTML = '<option value="">大会名を選択</option>' + db.tournaments.map(t => `<option value="${t}">${t}</option>`).join('');
-        
-        // 試合設定のチームセレクト更新
         const setupTeam = document.getElementById('setupMyTeam');
         const uniqueTeams = [...new Set(db.teams.map(t => t.team))];
         setupTeam.innerHTML = '<option value="">チームを選択</option>' + uniqueTeams.map(t => `<option value="${t}">${t}</option>`).join('');
