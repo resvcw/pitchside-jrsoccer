@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.2.5 - 試合記録</title>
+    <title>PitchSide Pro v9.2.6 - 試合記録</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -106,6 +106,7 @@
         .photo-input-wrap { width: 60px; height: 60px; background: var(--glass); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 1px dashed var(--accent); }
         .photo-input-wrap input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
         .photo-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
+        .photo-clear-btn { position: absolute; top: -5px; right: -5px; background: var(--secondary); color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 900; display: none; align-items: center; justify-content: center; z-index: 10; border: 1px solid #fff; }
 
         .at-ctrl-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
         .at-btn-small { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--glass); background: var(--glass); color: #fff; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
@@ -121,7 +122,7 @@
         <div style="width:80px; height:80px; background:var(--gradient); border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 30px rgba(0,212,255,0.4);">
             <div style="font-size:40px; font-weight:900;">P</div>
         </div>
-        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.5</p>
+        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.6</p>
         <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px;">
         <button id="loginBtn" onclick="checkPass()" style="margin-top:15px; font-size:16px;">ログイン</button>
     </div>
@@ -131,6 +132,15 @@
             <div id="setupScreen">
                 <div class="card">
                     <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0; color:var(--accent);">試合設定</h2>
+                    
+                    <label style="font-size:11px; font-weight:900; color:var(--text-sub);">自チーム・カテゴリ</label>
+                    <div style="display:flex; gap:10px; margin-bottom:12px;">
+                        <select id="setupMyTeam" style="flex:1; margin-bottom:0;" onchange="updateSetupCategoryFilter()">
+                        </select>
+                        <select id="setupCategory" style="flex:1; margin-bottom:0;" onchange="updateUI()">
+                        </select>
+                    </div>
+
                     <label style="font-size:11px; font-weight:900; color:var(--text-sub);">対戦相手</label>
                     <div id="quickOppList" style="margin-top:10px;"></div>
                     <input type="text" id="oppName" placeholder="対戦チーム名">
@@ -223,15 +233,21 @@
 
         <div id="tabHistory" class="tab-content">
             <h2 style="font-size:18px; font-weight:900; margin-bottom:20px; color:var(--accent);">試合履歴</h2>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <select id="historyFilterType" onchange="updateHistoryTournamentFilter()" style="flex:1; margin-bottom:0;">
+            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                <select id="historyFilterMyTeam" onchange="updateHistoryCategoryFilter()" style="flex:1; min-width:140px; margin-bottom:5px;">
+                    <option value="all">すべてのチーム</option>
+                </select>
+                <select id="historyFilterCategory" onchange="fetchReports()" style="flex:1; min-width:140px; margin-bottom:5px;">
+                    <option value="all">すべてのカテゴリ</option>
+                </select>
+                <select id="historyFilterType" onchange="fetchReports()" style="flex:1; min-width:140px; margin-bottom:5px;">
                     <option value="all">すべての形式</option>
                     <option value="公式戦">公式戦</option>
                     <option value="トレーニングマッチ">練習試合</option>
                     <option value="カップ戦">カップ戦</option>
                     <option value="その他">その他</option>
                 </select>
-                <select id="historyFilterTournament" onchange="fetchReports()" style="flex:1; margin-bottom:0;">
+                <select id="historyFilterTournament" onchange="fetchReports()" style="flex:1; min-width:140px; margin-bottom:5px;">
                     <option value="all">すべての大会</option>
                 </select>
             </div>
@@ -241,19 +257,38 @@
         <div id="tabSettings" class="tab-content">
             <div class="card">
                 <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0; color:var(--accent);">設定</h2>
-                <label style="font-size:11px; font-weight:900; color:var(--text-sub);">自チーム名</label>
-                <input type="text" id="myTeamInput" onchange="saveTeamName()">
                 
-                <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:20px; display:block;">選手登録</label>
-                <div style="display:flex; gap:10px; align-items:center;">
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub);">自チーム・カテゴリ登録</label>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <input type="text" id="teamInName" placeholder="チーム名" style="flex:1; margin-bottom:0;">
+                    <input type="text" id="categoryInName" placeholder="カテゴリ(A等)" style="flex:1; margin-bottom:0;">
+                    <button onclick="addMaster('teams')" style="width:60px; height:50px; padding:0;">追加</button>
+                </div>
+                <div id="teamMasterList" style="margin-bottom:25px;"></div>
+
+                <label style="font-size:11px; font-weight:900; color:var(--text-sub); display:block;">選手登録</label>
+                <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
                     <div class="photo-input-wrap">
                         <span id="photoIcon">📷</span>
                         <img id="pInPhotoPreview" class="photo-preview">
+                        <div id="photoClearBtn" class="photo-clear-btn" onclick="clearPhotoSelection(event)">×</div>
                         <input type="file" id="pInPhoto" accept="image/*" onchange="previewPhoto(this)">
                     </div>
-                    <input type="number" id="pInNum" placeholder="番号" style="width:65px; margin-bottom:0;">
-                    <input type="text" id="pInName" placeholder="選手名" style="margin-bottom:0;">
-                    <button onclick="addMaster('players')" style="width:60px; height:50px; padding:0;">追加</button>
+                    <div style="flex:1;">
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <input type="number" id="pInNum" placeholder="番号" style="width:65px; margin-bottom:0;">
+                            <input type="text" id="pInName" placeholder="選手名" style="flex:1; margin-bottom:0;">
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <select id="pInTeam" style="flex:1; margin-bottom:0;" onchange="updateCategorySelect('pInTeam', 'pInCategory')">
+                                <option value="">チームを選択</option>
+                            </select>
+                            <select id="pInCategory" style="flex:1; margin-bottom:0;">
+                                <option value="">カテゴリ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="addMaster('players')" style="width:60px; height:85px; padding:0;">追加</button>
                 </div>
                 <div id="pMasterList" style="margin-top:20px;"></div>
 
@@ -293,8 +328,8 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let db = {
-        myTeam: localStorage.getItem('ps_myteam') || "自チーム",
-        players: JSON.parse(localStorage.getItem('ps_players_v9')) || [],
+        teams: JSON.parse(localStorage.getItem('ps_teams_master_v9')) || [], // [{team: "たこFC", category: "Aチーム"}]
+        players: JSON.parse(localStorage.getItem('ps_players_v9.6')) || [], // [{..., team: "", category: ""}]
         opps: JSON.parse(localStorage.getItem('ps_opps_master')) || [],
         venues: JSON.parse(localStorage.getItem('ps_venues_master')) || [],
         tournaments: JSON.parse(localStorage.getItem('ps_tournaments_master')) || []
@@ -313,7 +348,9 @@
         formation: "3-3-1", 
         pitchPositions: {}, 
         playerGoals: {}, 
-        playerCards: {} 
+        playerCards: {},
+        selectedTeam: "",
+        selectedCategory: ""
     };
 
     const formations = {
@@ -343,7 +380,6 @@
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainUI').style.display = 'block';
         document.getElementById('bottomNav').style.display = 'flex';
-        document.getElementById('myTeamInput').value = db.myTeam;
         refreshSettingsUI();
         updateQuickLists();
     }
@@ -363,7 +399,6 @@
             const touch = e.touches[0];
             el.style.position = 'fixed'; el.style.left = touch.clientX + 'px'; el.style.top = touch.clientY + 'px'; el.style.zIndex = '9999';
             
-            // Auto Scroll Logic
             const scrollThreshold = 100;
             const scrollSpeed = 10;
             if (touch.clientY < scrollThreshold) {
@@ -415,46 +450,24 @@
         syncToCloud(); updateUI();
     }
 
-    let startY = 0, pulling = false;
-    const appContainer = document.getElementById('appContainer'), ptrIndicator = document.getElementById('ptr-indicator'), ptrSpinner = document.getElementById('ptr-spinner'), ptrText = document.getElementById('ptr-text');
-
-    window.addEventListener('touchstart', (e) => {
-        if (document.getElementById('liveScreen').style.display === 'block') return;
-        if (window.scrollY === 0) { startY = e.touches[0].pageY; pulling = true; }
-    }, { passive: true });
-
-    window.addEventListener('touchmove', (e) => {
-        if (!pulling) return;
-        const currentY = e.touches[0].pageY, diff = currentY - startY;
-        if (diff > 0) {
-            const move = Math.pow(diff, 0.8);
-            appContainer.style.transform = `translateY(${move}px)`;
-            ptrText.innerText = move > 50 ? "指を離して更新" : "下にスワイプして更新";
-        }
-    }, { passive: true });
-
-    window.addEventListener('touchend', () => {
-        if (!pulling) return;
-        const transform = appContainer.style.transform, match = transform.match(/translateY\((.*)px\)/), move = match ? parseFloat(match[1]) : 0;
-        appContainer.style.transform = ''; pulling = false;
-        if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "更新中..."; setTimeout(() => location.reload(), 300); }
-    });
-
     async function startMatch() {
+        const myTeam = document.getElementById('setupMyTeam').value;
+        const myCategory = document.getElementById('setupCategory').value;
         const opp = document.getElementById('oppName').value.trim();
         const venue = document.getElementById('venueName').value.trim();
         const mins = parseInt(document.getElementById('halfMinutes').value);
         const matchType = document.getElementById('matchType').value;
         const tournament = document.getElementById('tournamentSelect').value;
         
-        if(!opp || !venue) { alert("対戦相手と会場を入力してください"); return; }
+        if(!myTeam || !opp || !venue) { alert("自チーム、対戦相手、会場を入力してください"); return; }
         
         const btn = document.getElementById('kickoffBtn'); btn.disabled = true; btn.innerText = "準備中...";
 
+        const teamDisplay = myCategory ? `${myTeam} (${myCategory})` : myTeam;
         const venueDisplay = tournament ? `${venue} [${matchType}] [${tournament}]` : `${venue} [${matchType}]`;
 
         const { data, error } = await supabaseClient.from('match_reports').insert([{ 
-            my_team: db.myTeam, 
+            my_team: teamDisplay, 
             opponent: opp, 
             venue: venueDisplay, 
             score: "0 - 0", 
@@ -475,8 +488,10 @@
             live.pitchPositions = {};
             live.playerGoals = {};
             live.playerCards = {};
+            live.selectedTeam = myTeam;
+            live.selectedCategory = myCategory;
 
-            document.getElementById('myTeamDisplay').innerText = db.myTeam;
+            document.getElementById('myTeamDisplay').innerText = teamDisplay;
             document.getElementById('oppDisplay').innerText = opp;
             document.getElementById('setupScreen').style.display = 'none';
             document.getElementById('liveScreen').style.display = 'block';
@@ -547,7 +562,17 @@
         const onIds = Object.values(live.pitchPositions);
         const benchGrid = document.getElementById('benchGrid');
         benchGrid.innerHTML = '';
-        db.players.filter(p => !onIds.includes(p.id)).forEach(p => {
+        
+        // カテゴリ一致選手を優先表示、未設定なら全表示
+        let playersToShow = db.players;
+        if (live.selectedTeam) {
+            playersToShow = playersToShow.filter(p => p.team === live.selectedTeam);
+            if (live.selectedCategory) {
+                playersToShow = playersToShow.filter(p => p.category === live.selectedCategory);
+            }
+        }
+
+        playersToShow.filter(p => !onIds.includes(p.id)).forEach(p => {
             const chip = document.createElement('div');
             chip.className = 'player-chip bench';
             chip.setAttribute('data-player-id', p.id);
@@ -581,9 +606,13 @@
 
     function choosePlayerFor(posId) {
         const onIds = Object.values(live.pitchPositions);
-        const bench = db.players.filter(p => !onIds.includes(p.id));
+        let bench = db.players.filter(p => !onIds.includes(p.id));
+        if (live.selectedTeam) {
+            bench = bench.filter(p => p.team === live.selectedTeam);
+            if (live.selectedCategory) bench = bench.filter(p => p.category === live.selectedCategory);
+        }
         const html = bench.map(p => `<div class="action-btn" onclick="assignPlayer('${posId}', '${p.id}')">${p.num ? p.num+' ' : ''}${p.name}</div>`).join('');
-        showActionModal("選手を選択", html || "<p style='text-align:center; padding:10px;'>ベンチに選手がいません</p>");
+        showActionModal("選手を選択", html || "<p style='text-align:center; padding:10px;'>対象の選手がいません</p>");
     }
 
     function assignPlayer(posId, pId) {
@@ -665,10 +694,15 @@
 
     function modifyOwnScore(v) {
         if (v > 0) {
-            const allPlayers = db.players;
+            let playersToShow = db.players;
+            if (live.selectedTeam) {
+                playersToShow = playersToShow.filter(p => p.team === live.selectedTeam);
+                if (live.selectedCategory) playersToShow = playersToShow.filter(p => p.category === live.selectedCategory);
+            }
+            
             const onIds = Object.values(live.pitchPositions);
-            const onPitch = allPlayers.filter(p => onIds.includes(p.id));
-            const bench = allPlayers.filter(p => !onIds.includes(p.id));
+            const onPitch = playersToShow.filter(p => onIds.includes(p.id));
+            const bench = playersToShow.filter(p => !onIds.includes(p.id));
             
             let html = `<div style="margin-bottom:10px; font-size:11px; color:var(--accent); font-weight:900;">ピッチ上の選手</div>`;
             html += onPitch.map(p => `<div class="action-btn" style="padding:12px; font-size:14px;" onclick="showGoalTypeSelection('${p.id}')">${p.num ? p.num+' ' : ''}${p.name}</div>`).join('');
@@ -715,17 +749,17 @@
     }
 
     async function fetchReports() {
+        const teamFilter = document.getElementById('historyFilterMyTeam').value;
+        const catFilter = document.getElementById('historyFilterCategory').value;
         const typeFilter = document.getElementById('historyFilterType').value;
         const tournamentFilter = document.getElementById('historyFilterTournament').value;
         
         let query = supabaseClient.from('match_reports').select('*').order('created_at', { ascending: false });
         
-        if (typeFilter !== 'all') {
-            query = query.ilike('venue', `%[${typeFilter}]%`);
-        }
-        if (tournamentFilter !== 'all') {
-            query = query.ilike('venue', `%[${tournamentFilter}]%`);
-        }
+        if (teamFilter !== 'all') query = query.ilike('my_team', `%${teamFilter}%`);
+        if (catFilter !== 'all') query = query.ilike('my_team', `%(${catFilter})%`);
+        if (typeFilter !== 'all') query = query.ilike('venue', `%[${typeFilter}]%`);
+        if (tournamentFilter !== 'all') query = query.ilike('venue', `%[${tournamentFilter}]%`);
         
         const { data } = await query;
         if(data) {
@@ -739,10 +773,8 @@
                     <div style="padding:20px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05);">
                         <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">イベント:</div>
                         <textarea id="editDetail_${r.id}" style="height:150px; font-size:13px; margin-bottom:15px; background:rgba(0,0,0,0.3); color:#fff; border:1px solid var(--glass);">${r.detail}</textarea>
-                        
                         <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">メモ:</div>
                         <textarea id="editMemo_${r.id}" style="height:100px; font-size:13px; margin-bottom:15px; background:rgba(0,0,0,0.3); color:#fff; border:1px solid var(--glass);">${r.memo || ''}</textarea>
-                        
                         <div style="display:flex; gap:10px;">
                             <button onclick="saveEditedReport('${r.id}')" style="flex:2; height:50px; font-size:14px;">変更を保存</button>
                             <button onclick="deleteReport('${r.id}')" style="flex:1; height:50px; font-size:14px; background:#ff007a;">削除</button>
@@ -759,6 +791,18 @@
         const { error } = await supabaseClient.from('match_reports').update({ detail, memo }).eq('id', id);
         if(!error) alert("レポートを更新しました");
         else alert("エラー: 更新できませんでした");
+    }
+
+    function updateHistoryCategoryFilter() {
+        const team = document.getElementById('historyFilterMyTeam').value;
+        const filterC = document.getElementById('historyFilterCategory');
+        if (team === 'all') {
+            filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>';
+        } else {
+            const cats = db.teams.filter(t => t.team === team).map(t => t.category);
+            filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        fetchReports();
     }
 
     function updateHistoryTournamentFilter() {
@@ -793,12 +837,8 @@
         } else { 
             live.timerInterval = setInterval(() => { 
                 if(!live.isAT) {
-                    if(live.timerLeft > 0) {
-                        live.timerLeft--;
-                    } else {
-                        live.isAT = true;
-                        addEvent("アディショナルタイム開始");
-                    }
+                    if(live.timerLeft > 0) live.timerLeft--;
+                    else { live.isAT = true; addEvent("アディショナルタイム開始"); }
                 } else {
                     live.atSeconds++;
                     if(live.atSeconds >= live.maxAtSeconds && live.maxAtSeconds > 0) {
@@ -815,15 +855,34 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(tabId).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
         localStorage.setItem('ps_active_tab', tabId);
-        if(tabId === 'tabHistory') updateHistoryTournamentFilter();
+        if(tabId === 'tabHistory') {
+            const teamFilter = document.getElementById('historyFilterMyTeam');
+            const uniqueTeams = [...new Set(db.teams.map(t => t.team))];
+            teamFilter.innerHTML = '<option value="all">すべてのチーム</option>' + uniqueTeams.map(t => `<option value="${t}">${t}</option>`).join('');
+            updateHistoryTournamentFilter();
+        }
     }
 
     function addMaster(type) {
-        if(type==='players') {
-            const num = document.getElementById('pInNum').value, name = document.getElementById('pInName').value.trim();
-            if(name) { db.players.push({ id: Date.now().toString(), num, name, photo: currentPhotoData }); localStorage.setItem('ps_players_v9', JSON.stringify(db.players)); }
+        if(type==='teams') {
+            const team = document.getElementById('teamInName').value.trim();
+            const cat = document.getElementById('categoryInName').value.trim();
+            if(team && cat) {
+                db.teams.push({ team, category: cat });
+                localStorage.setItem('ps_teams_master_v9', JSON.stringify(db.teams));
+                document.getElementById('categoryInName').value = '';
+            } else { alert("チーム名とカテゴリを入力してください"); return; }
+        } else if(type==='players') {
+            const num = document.getElementById('pInNum').value;
+            const name = document.getElementById('pInName').value.trim();
+            const team = document.getElementById('pInTeam').value;
+            const cat = document.getElementById('pInCategory').value;
+            if(name) {
+                db.players.push({ id: Date.now().toString(), num, name, photo: currentPhotoData, team, category: cat });
+                localStorage.setItem('ps_players_v9.6', JSON.stringify(db.players));
+            } else { alert("名前を入力してください"); return; }
             document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = '';
-            document.getElementById('pInPhotoPreview').style.display = 'none'; document.getElementById('photoIcon').style.display = 'block'; currentPhotoData = null;
+            clearPhotoSelection();
         } else if(type==='opps') {
             const name = document.getElementById('oppInName').value.trim();
             if(name && !db.opps.includes(name)) { db.opps.push(name); localStorage.setItem('ps_opps_master', JSON.stringify(db.opps)); }
@@ -840,13 +899,26 @@
         refreshSettingsUI(); updateQuickLists();
     }
 
+    function updateCategorySelect(teamElId, catElId) {
+        const team = document.getElementById(teamElId).value;
+        const catSelect = document.getElementById(catElId);
+        if (!team) { catSelect.innerHTML = '<option value="">カテゴリ</option>'; return; }
+        const cats = db.teams.filter(t => t.team === team).map(t => t.category);
+        catSelect.innerHTML = '<option value="">カテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function updateSetupCategoryFilter() {
+        updateCategorySelect('setupMyTeam', 'setupCategory');
+        updateUI();
+    }
+
     function editPlayer(id) {
         const p = db.players.find(x => x.id === id);
         const newNum = prompt("背番号を編集", p.num || "");
         const newName = prompt("名前を編集", p.name);
         if(newName !== null && newName.trim() !== "") {
             p.num = newNum; p.name = newName.trim();
-            localStorage.setItem('ps_players_v9', JSON.stringify(db.players));
+            localStorage.setItem('ps_players_v9.6', JSON.stringify(db.players));
             refreshSettingsUI(); if(document.getElementById('liveScreen').style.display === 'block') updateUI();
         }
     }
@@ -854,32 +926,42 @@
     function deleteMaster(type, index) { 
         if(confirm("削除しますか？")) { 
             db[type].splice(index, 1); 
-            const keys = { players: 'ps_players_v9', opps: 'ps_opps_master', venues: 'ps_venues_master', tournaments: 'ps_tournaments_master' };
+            const keys = { teams: 'ps_teams_master_v9', players: 'ps_players_v9.6', opps: 'ps_opps_master', venues: 'ps_venues_master', tournaments: 'ps_tournaments_master' };
             localStorage.setItem(keys[type], JSON.stringify(db[type])); 
             refreshSettingsUI(); updateQuickLists(); 
         } 
     }
 
     function refreshSettingsUI() {
+        document.getElementById('teamMasterList').innerHTML = db.teams.map((t,i) => `<div class="chip-del">${t.team} - ${t.category} <span class="del-btn" onclick="deleteMaster('teams', ${i})">×</span></div>`).join('');
         document.getElementById('pMasterList').innerHTML = db.players.map((p,i) => `<div class="chip-del">
             <div style="display:flex; align-items:center; gap:10px;">
                 ${p.photo ? `<img src="${p.photo}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #00d4ff;">` : `<div style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px dashed #8e9aaf;"></div>`}
-                <span>${p.num?p.num+' ':''}${p.name}</span>
+                <span>${p.num?p.num+' ':''}${p.name} <small style="color:var(--text-sub);">(${p.team || '未設定'}${p.category?'-'+p.category:''})</small></span>
             </div>
             <div><span class="edit-btn" onclick="editPlayer('${p.id}')">✎</span><span class="del-btn" onclick="deleteMaster('players', ${i})">×</span></div>
         </div>`).join('');
         document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t,i) => `<div class="chip-del">${t} <span class="del-btn" onclick="deleteMaster('tournaments', ${i})">×</span></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o,i) => `<div class="chip-del">${o} <span class="del-btn" onclick="deleteMaster('opps', ${i})">×</span></div>`).join('');
         document.getElementById('venueMasterList').innerHTML = db.venues.map((v,i) => `<div class="chip-del">${v} <span class="del-btn" onclick="deleteMaster('venues', ${i})">×</span></div>`).join('');
+        
+        // 選手登録フォームのチームセレクト更新
+        const pTeam = document.getElementById('pInTeam');
+        const uniqueTeams = [...new Set(db.teams.map(t => t.team))];
+        pTeam.innerHTML = '<option value="">チームを選択</option>' + uniqueTeams.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
     function updateQuickLists() {
         document.getElementById('quickOppList').innerHTML = db.opps.map(x => `<span class="quick-chip" onclick="document.getElementById('oppName').value='${x}';">${x}</span>`).join('');
         document.getElementById('quickVenueList').innerHTML = db.venues.map(x => `<span class="quick-chip" onclick="document.getElementById('venueName').value='${x}';">${x}</span>`).join('');
         document.getElementById('tournamentSelect').innerHTML = '<option value="">大会名を選択</option>' + db.tournaments.map(t => `<option value="${t}">${t}</option>`).join('');
+        
+        // 試合設定のチームセレクト更新
+        const setupTeam = document.getElementById('setupMyTeam');
+        const uniqueTeams = [...new Set(db.teams.map(t => t.team))];
+        setupTeam.innerHTML = '<option value="">チームを選択</option>' + uniqueTeams.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
-    function saveTeamName() { db.myTeam = document.getElementById('myTeamInput').value; localStorage.setItem('ps_myteam', db.myTeam); }
     function closeModals() { document.getElementById('actionModal').style.display = 'none'; }
     function showActionModal(title, html) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalList').innerHTML = html; document.getElementById('actionModal').style.display = 'flex'; }
 
@@ -892,9 +974,19 @@
                 document.getElementById('pInPhotoPreview').src = currentPhotoData;
                 document.getElementById('pInPhotoPreview').style.display = 'block';
                 document.getElementById('photoIcon').style.display = 'none';
+                document.getElementById('photoClearBtn').style.display = 'flex';
             };
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    function clearPhotoSelection(event) {
+        if (event) event.stopPropagation();
+        currentPhotoData = null;
+        document.getElementById('pInPhoto').value = "";
+        document.getElementById('pInPhotoPreview').style.display = 'none';
+        document.getElementById('photoIcon').style.display = 'block';
+        document.getElementById('photoClearBtn').style.display = 'none';
     }
 </script>
 </body>
