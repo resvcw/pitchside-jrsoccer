@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.2.4 - 試合記録</title>
+    <title>PitchSide Pro v9.2.5 - 試合記録</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -121,7 +121,7 @@
         <div style="width:80px; height:80px; background:var(--gradient); border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 30px rgba(0,212,255,0.4);">
             <div style="font-size:40px; font-weight:900;">P</div>
         </div>
-        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.4</p>
+        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.5</p>
         <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px;">
         <button id="loginBtn" onclick="checkPass()" style="margin-top:15px; font-size:16px;">ログイン</button>
     </div>
@@ -349,6 +349,7 @@
     }
 
     let draggedElement = null, draggedPlayerId = null, dragSourcePosId = null;
+    let scrollInterval = null;
 
     function initDraggable(el, pId, posId = null) {
         el.addEventListener('touchstart', (e) => {
@@ -361,11 +362,26 @@
             if (!draggedElement) return;
             const touch = e.touches[0];
             el.style.position = 'fixed'; el.style.left = touch.clientX + 'px'; el.style.top = touch.clientY + 'px'; el.style.zIndex = '9999';
+            
+            // Auto Scroll Logic
+            const scrollThreshold = 100;
+            const scrollSpeed = 10;
+            if (touch.clientY < scrollThreshold) {
+                if (!scrollInterval) scrollInterval = setInterval(() => window.scrollBy(0, -scrollSpeed), 20);
+            } else if (touch.clientY > window.innerHeight - scrollThreshold) {
+                if (!scrollInterval) scrollInterval = setInterval(() => window.scrollBy(0, scrollSpeed), 20);
+            } else {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
+            }
+            
             e.preventDefault();
         }, { passive: false });
 
         el.addEventListener('touchend', (e) => {
             if (!draggedElement) return;
+            clearInterval(scrollInterval);
+            scrollInterval = null;
             el.classList.remove('dragging');
             el.style.position = ''; el.style.left = ''; el.style.top = ''; el.style.zIndex = '';
             const touch = e.changedTouches[0];
@@ -675,8 +691,8 @@
     function modifyOppScore(v) {
         if (v > 0) {
             const html = `
-                <div class="action-btn" onclick="recordGoal(null, false, true)">⚠️ オウンゴール (OG)</div>
                 <div class="action-btn" onclick="live.score.opp++; addEvent('失点'); closeModals(); updateUI(); syncToCloud();">⚽ 通常の失点</div>
+                <div class="action-btn" onclick="recordGoal(null, false, true)">⚠️ オウンゴール (OG)</div>
             `;
             showActionModal("失点内容", html);
         } else {
@@ -721,13 +737,28 @@
                         <div style="font-size:11px; color:#8e9aaf; font-weight:700;">${r.venue}</div>
                     </summary>
                     <div style="padding:20px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">イベント:</div><div style="white-space:pre-wrap; color:#fff; margin-bottom:15px; font-size:13px;">${r.detail}</div>
-                        <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">メモ:</div><div style="white-space:pre-wrap; color:#fff; font-size:13px;">${r.memo}</div>
-                        <button class="del-row-btn" onclick="deleteReport('${r.id}')" style="margin-top:20px; background:#ff007a; color:#fff;">レポートを削除</button>
+                        <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">イベント:</div>
+                        <textarea id="editDetail_${r.id}" style="height:150px; font-size:13px; margin-bottom:15px; background:rgba(0,0,0,0.3); color:#fff; border:1px solid var(--glass);">${r.detail}</textarea>
+                        
+                        <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">メモ:</div>
+                        <textarea id="editMemo_${r.id}" style="height:100px; font-size:13px; margin-bottom:15px; background:rgba(0,0,0,0.3); color:#fff; border:1px solid var(--glass);">${r.memo || ''}</textarea>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="saveEditedReport('${r.id}')" style="flex:2; height:50px; font-size:14px;">変更を保存</button>
+                            <button onclick="deleteReport('${r.id}')" style="flex:1; height:50px; font-size:14px; background:#ff007a;">削除</button>
+                        </div>
                     </div>
                 </details>
             `).join('');
         }
+    }
+
+    async function saveEditedReport(id) {
+        const detail = document.getElementById(`editDetail_${id}`).value;
+        const memo = document.getElementById(`editMemo_${id}`).value;
+        const { error } = await supabaseClient.from('match_reports').update({ detail, memo }).eq('id', id);
+        if(!error) alert("レポートを更新しました");
+        else alert("エラー: 更新できませんでした");
     }
 
     function updateHistoryTournamentFilter() {
