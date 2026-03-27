@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.2.1 - 試合記録</title>
+    <title>PitchSide Pro v9.2.3 - 試合記録</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -41,11 +41,15 @@
         
         .live-header { background: linear-gradient(180deg, #151b26 0%, #0a0e14 100%); color: #fff; padding: 20px; border-radius: 24px; margin-bottom: 20px; text-align: center; border: 1px solid var(--glass); }
         .timer-display { font-size: 48px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 20px rgba(0,212,255,0.3); }
-        .score-board { display: flex; justify-content: space-around; align-items: center; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 16px; border: 1px solid var(--glass); }
-        .score-ctrl { display: inline-flex; align-items: center; gap: 12px; }
-        .score-btn { width: 34px; height: 34px; border-radius: 10px; border: none; background: var(--glass); color: #fff; font-weight: 900; cursor: pointer; transition: 0.2s; }
+        
+        .score-board { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 16px; border: 1px solid var(--glass); gap: 10px; }
+        .score-team-box { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .score-team-name { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .score-ctrl { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .score-btn { width: 36px; height: 36px; border-radius: 10px; border: none; background: var(--glass); color: #fff; font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .score-btn:active { transform: scale(0.9); background: var(--accent); }
-        .score-val { font-size: 32px; font-weight: 900; min-width: 45px; }
+        .score-val { font-size: 32px; font-weight: 900; min-width: 40px; text-align: center; }
+        .score-vs { font-size: 16px; font-weight: 900; color: var(--glass); margin-top: 25px; }
 
         .pitch { width: 100%; aspect-ratio: 3/4; background: linear-gradient(180deg, #0f1a10 0%, #070d08 100%); position: relative; border-radius: 24px; overflow: hidden; margin-top: 15px; border: 2px solid #1a2a1b; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
         .pitch::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 10% 10%; pointer-events: none; }
@@ -68,7 +72,6 @@
         .card-mini { position: absolute; top: 0; right: 0; width: 12px; height: 16px; border-radius: 2px; border: 1px solid #fff; z-index: 5; }
         .card-yellow { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
         .card-red { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
-        .card-green { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; margin-top: 15px; }
         .player-chip { background: var(--card-bg); border: 1px solid var(--glass); border-radius: 16px; padding: 12px 5px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; touch-action: none; transition: 0.2s; }
@@ -103,6 +106,11 @@
         .photo-input-wrap { width: 60px; height: 60px; background: var(--glass); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 1px dashed var(--accent); }
         .photo-input-wrap input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
         .photo-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
+
+        /* AT Control UI */
+        .at-ctrl-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
+        .at-btn-small { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--glass); background: var(--glass); color: #fff; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+        .at-btn-small:active { background: var(--secondary); }
     </style>
 </head>
 <body>
@@ -114,7 +122,7 @@
         <div style="width:80px; height:80px; background:var(--gradient); border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 30px rgba(0,212,255,0.4);">
             <div style="font-size:40px; font-weight:900;">P</div>
         </div>
-        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.1</p>
+        <p style="color:var(--accent); font-size:12px; font-weight:900; margin-bottom:40px;">PitchSide Pro v9.2.3</p>
         <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px;">
         <button id="loginBtn" onclick="checkPass()" style="margin-top:15px; font-size:16px;">ログイン</button>
     </div>
@@ -132,13 +140,16 @@
                     <div id="quickVenueList" style="margin-top:10px;"></div>
                     <input type="text" id="venueName" placeholder="スタジアム / グラウンド">
                     
-                    <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px; display:block;">試合形式</label>
-                    <select id="matchType">
-                        <option value="公式戦">公式戦</option>
-                        <option value="トレーニングマッチ">トレーニングマッチ</option>
-                        <option value="カップ戦">カップ戦</option>
-                        <option value="その他">その他</option>
-                    </select>
+                    <label style="font-size:11px; font-weight:900; color:var(--text-sub); margin-top:15px; display:block;">試合形式・大会名</label>
+                    <div style="display:flex; gap:10px; margin-bottom:12px;">
+                        <select id="matchType" style="flex:1; margin-bottom:0;">
+                            <option value="公式戦">公式戦</option>
+                            <option value="トレーニングマッチ">トレーニングマッチ</option>
+                            <option value="カップ戦">カップ戦</option>
+                            <option value="その他">その他</option>
+                        </select>
+                        <input type="text" id="tournamentName" placeholder="大会名を入力（任意）" style="flex:2; margin-bottom:0;">
+                    </div>
 
                     <div style="display:flex; gap:15px; margin-top:15px;">
                         <div style="flex:1;"><label style="font-size:11px; font-weight:900; color:var(--text-sub);">試合時間 (分)</label>
@@ -148,23 +159,14 @@
                                 <option value="35">35分</option><option value="40">40分</option><option value="45">45分</option>
                             </select>
                         </div>
-                        <div style="flex:1;"><label style="font-size:11px; font-weight:900; color:var(--text-sub);">AT (アディショナル)</label>
-                            <select id="additionalMinutes">
-                                <option value="0">なし</option><option value="1">1分</option><option value="2">2分</option>
-                                <option value="3">3分</option><option value="4">4分</option><option value="5">5分</option>
-                                <option value="6">6分</option><option value="7">7分</option><option value="8">8分</option>
+                        <div style="flex:1;"><label style="font-size:11px; font-weight:900; color:var(--text-sub);">フォーメーション</label>
+                            <select id="formationSelect">
+                                <option value="3-3-1">3-3-1 基本形</option>
+                                <option value="2-4-1">2-4-1 攻撃型</option>
+                                <option value="3-2-2">3-2-2 カウンター</option>
+                                <option value="2-3-2">2-3-2 ウルトラ</option>
                             </select>
                         </div>
-                    </div>
-                    
-                    <div style="margin-top:15px;">
-                        <label style="font-size:11px; font-weight:900; color:var(--text-sub);">フォーメーション</label>
-                        <select id="formationSelect">
-                            <option value="3-3-1">3-3-1 基本形</option>
-                            <option value="2-4-1">2-4-1 攻撃型</option>
-                            <option value="3-2-2">3-2-2 カウンター</option>
-                            <option value="2-3-2">2-3-2 ウルトラ</option>
-                        </select>
                     </div>
                     <button id="kickoffBtn" onclick="startMatch()" style="margin-top:25px; height:65px; font-size:18px;">キックオフ</button>
                 </div>
@@ -174,23 +176,34 @@
                 <div class="live-header">
                     <div id="syncStatus" style="font-size:10px; font-weight:900; color:var(--green); margin-bottom:10px; letter-spacing:1px;">● LIVE 同期中</div>
                     <div class="timer-display" id="timerText">15:00</div>
-                    <div id="atDisplay" style="font-size:14px; font-weight:900; color:var(--secondary); margin-top:-5px; margin-bottom:10px; display:none;">AT +0:00</div>
+                    
+                    <!-- AT Control UI -->
+                    <div id="atDisplayBox" style="margin-top:5px; margin-bottom:10px;">
+                        <div id="atLabel" style="font-size:12px; font-weight:900; color:var(--secondary); letter-spacing:1px;">AT 設定なし</div>
+                        <div class="at-ctrl-box">
+                            <div class="at-btn-small" onclick="modifyAT(-1)">-</div>
+                            <div id="atValueDisplay" style="font-size:18px; font-weight:900; color:#fff; min-width:40px;">+0</div>
+                            <div class="at-btn-small" onclick="modifyAT(1)">+</div>
+                        </div>
+                    </div>
+
                     <div style="display:flex; justify-content:center; gap:15px; margin:20px 0;">
                         <button id="btnTimer" onclick="toggleTimer()" style="background:#fff; color:#000; height:55px;">スタート</button>
                         <button onclick="endPeriod()" style="background:var(--glass); border:none; border-radius:18px; color:#fff; height:55px; font-weight:900;">終了</button>
                     </div>
+                    
                     <div class="score-board">
-                        <div style="text-align:center;">
-                            <div style="font-size:11px; font-weight:900; color:var(--text-sub); margin-bottom:5px;" id="myTeamDisplay">HOME</div>
+                        <div class="score-team-box">
+                            <div class="score-team-name" id="myTeamDisplay">HOME</div>
                             <div class="score-ctrl">
                                 <button class="score-btn" onclick="modifyOwnScore(-1)">-</button>
                                 <div id="scoreOwn" class="score-val">0</div>
                                 <button class="score-btn" onclick="modifyOwnScore(1)">+</button>
                             </div>
                         </div>
-                        <div style="font-size:20px; font-weight:900; color:var(--glass);">VS</div>
-                        <div style="text-align:center;">
-                            <div style="font-size:11px; font-weight:900; color:var(--text-sub); margin-bottom:5px;" id="oppDisplay">AWAY</div>
+                        <div class="score-vs">VS</div>
+                        <div class="score-team-box">
+                            <div class="score-team-name" id="oppDisplay">AWAY</div>
                             <div class="score-ctrl">
                                 <button class="score-btn" onclick="modifyOppScore(-1)">-</button>
                                 <div id="scoreOpp" class="score-val">0</div>
@@ -210,6 +223,15 @@
 
         <div id="tabHistory" class="tab-content">
             <h2 style="font-size:18px; font-weight:900; margin-bottom:20px; color:var(--accent);">試合履歴</h2>
+            <!-- Filter UI -->
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <select id="historyFilter" onchange="fetchReports()" style="margin-bottom:0;">
+                    <option value="all">すべて</option>
+                    <option value="公式戦">公式戦</option>
+                    <option value="トレーニングマッチ">練習試合</option>
+                    <option value="カップ戦">カップ戦</option>
+                </select>
+            </div>
             <div id="historyList"></div>
         </div>
 
@@ -303,7 +325,7 @@
     });
 
     function checkPass() {
-        if(document.getElementById('passcode').value === '0328') {
+        if(document.getElementById('passcode').value === '2026') {
             localStorage.setItem('ps_logged_in', 'true');
             location.reload();
         } else { alert("パスコードが違います"); }
@@ -400,16 +422,19 @@
         const opp = document.getElementById('oppName').value.trim();
         const venue = document.getElementById('venueName').value.trim();
         const mins = parseInt(document.getElementById('halfMinutes').value);
-        const atMins = parseInt(document.getElementById('additionalMinutes').value);
+        const matchType = document.getElementById('matchType').value;
+        const tournament = document.getElementById('tournamentName').value.trim();
         
         if(!opp || !venue) { alert("対戦相手と会場を入力してください"); return; }
         
         const btn = document.getElementById('kickoffBtn'); btn.disabled = true; btn.innerText = "準備中...";
 
+        const venueDisplay = tournament ? `${venue} (${matchType} - ${tournament})` : `${venue} (${matchType})`;
+
         const { data, error } = await supabaseClient.from('match_reports').insert([{ 
             my_team: db.myTeam, 
             opponent: opp, 
-            venue: venue, 
+            venue: venueDisplay, 
             score: "0 - 0", 
             detail: "試合開始", 
             memo: "" 
@@ -419,7 +444,7 @@
             live.currentId = data[0].id;
             live.timerLeft = mins * 60;
             live.atSeconds = 0;
-            live.maxAtSeconds = atMins * 60;
+            live.maxAtSeconds = 0;
             live.isAT = false;
             live.score = { own: 0, opp: 0 };
             live.events = [];
@@ -433,7 +458,6 @@
             document.getElementById('oppDisplay').innerText = opp;
             document.getElementById('setupScreen').style.display = 'none';
             document.getElementById('liveScreen').style.display = 'block';
-            document.getElementById('atDisplay').style.display = 'none';
             
             updateUI();
             btn.disabled = false; btn.innerText = "キックオフ";
@@ -445,13 +469,20 @@
 
     function updateUI() {
         document.getElementById('timerText').innerText = formatTime(live.timerLeft);
+        
+        const atLabel = document.getElementById('atLabel');
+        const atValue = document.getElementById('atValueDisplay');
+        
         if (live.isAT) {
-            document.getElementById('atDisplay').style.display = 'block';
-            document.getElementById('atDisplay').innerText = `AT +${formatTime(live.atSeconds)}`;
+            atLabel.innerText = "AT 進行中";
+            atLabel.style.color = 'var(--secondary)';
             document.getElementById('timerText').style.color = 'var(--secondary)';
+            atValue.innerText = `+${formatTime(live.atSeconds)}`;
         } else {
-            document.getElementById('atDisplay').style.display = 'none';
+            atLabel.innerText = live.maxAtSeconds > 0 ? `AT 設定中 (+${Math.floor(live.maxAtSeconds/60)}分)` : "AT 設定なし";
+            atLabel.style.color = 'var(--text-sub)';
             document.getElementById('timerText').style.color = 'var(--accent)';
+            atValue.innerText = `+${Math.floor(live.maxAtSeconds/60)}`;
         }
 
         document.getElementById('scoreOwn').innerText = live.score.own;
@@ -520,6 +551,12 @@
         });
     }
 
+    function modifyAT(v) {
+        if (live.isAT) return; // 進行中は変更不可
+        live.maxAtSeconds = Math.max(0, live.maxAtSeconds + (v * 60));
+        updateUI();
+    }
+
     function choosePlayerFor(posId) {
         const onIds = Object.values(live.pitchPositions);
         const bench = db.players.filter(p => !onIds.includes(p.id));
@@ -538,6 +575,7 @@
         const p = db.players.find(x => x.id === pId);
         const html = `
             <div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div>
+            <div class="action-btn" onclick="recordGoal('${pId}', true)">🎯 PKゴール</div>
             <div class="action-btn" onclick="choosePlayerFor('${posId}')">🔄 選手交代</div>
             <div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエローカード</div>
             <div class="action-btn" onclick="recordCard('${pId}', 'red')">🟥 レッドカード</div>
@@ -555,11 +593,22 @@
         showActionModal(p.name, html);
     }
 
-    function recordGoal(pId) {
-        const p = db.players.find(x => x.id === pId);
-        live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1;
-        live.score.own++;
-        addEvent(`GOAL: ${p.name}`);
+    function recordGoal(pId, isPK = false, isOG = false) {
+        let eventTxt = "";
+        if (isOG) {
+            live.score.opp++;
+            eventTxt = "OWN GOAL (OG)";
+        } else {
+            const p = db.players.find(x => x.id === pId);
+            if (p) {
+                live.playerGoals[pId] = (live.playerGoals[pId] || 0) + 1;
+                eventTxt = `GOAL: ${p.name}${isPK ? ' (PK)' : ''}`;
+            } else {
+                eventTxt = `TEAM GOAL${isPK ? ' (PK)' : ''}`;
+            }
+            live.score.own++;
+        }
+        addEvent(eventTxt);
         closeModals(); updateUI(); syncToCloud();
     }
 
@@ -578,8 +627,43 @@
         closeModals(); updateUI(); syncToCloud();
     }
 
-    function modifyOwnScore(v) { live.score.own = Math.max(0, live.score.own + v); updateUI(); syncToCloud(); }
-    function modifyOppScore(v) { live.score.opp = Math.max(0, live.score.opp + v); updateUI(); syncToCloud(); }
+    function modifyOwnScore(v) {
+        if (v > 0) {
+            const onIds = Object.values(live.pitchPositions);
+            const scorers = db.players.filter(p => onIds.includes(p.id));
+            let html = scorers.map(p => `
+                <div class="action-btn" style="padding:12px; font-size:14px;" onclick="recordGoal('${p.id}')">${p.num ? p.num+' ' : ''}${p.name}</div>
+            `).join('');
+            
+            html += `<hr style="border:0; border-top:1px solid var(--glass); margin:10px 0;">`;
+            html += `<div class="action-btn" style="background:var(--secondary);" onclick="recordGoal(null, true)">🎯 PKゴール</div>`;
+            html += `<div class="action-btn" onclick="recordGoal(null)">その他 / 不明</div>`;
+            
+            showActionModal("得点者を選択", html);
+        } else {
+            if (live.score.own > 0) {
+                live.score.own--;
+                addEvent("得点取り消し");
+                updateUI(); syncToCloud();
+            }
+        }
+    }
+
+    function modifyOppScore(v) {
+        if (v > 0) {
+            const html = `
+                <div class="action-btn" onclick="recordGoal(null, false, true)">⚠️ オウンゴール (OG)</div>
+                <div class="action-btn" onclick="live.score.opp++; addEvent('失点'); closeModals(); updateUI(); syncToCloud();">⚽ 通常の失点</div>
+            `;
+            showActionModal("失点内容", html);
+        } else {
+            if (live.score.opp > 0) {
+                live.score.opp--;
+                addEvent("失点取り消し");
+                updateUI(); syncToCloud();
+            }
+        }
+    }
 
     async function syncToCloud() {
         if(!live.currentId) return;
@@ -592,14 +676,21 @@
     }
 
     async function fetchReports() {
-        const { data } = await supabaseClient.from('match_reports').select('*').order('created_at', { ascending: false });
+        const filter = document.getElementById('historyFilter').value;
+        let query = supabaseClient.from('match_reports').select('*').order('created_at', { ascending: false });
+        
+        if (filter !== 'all') {
+            query = query.ilike('venue', `%${filter}%`);
+        }
+        
+        const { data } = await query;
         if(data) {
             document.getElementById('historyList').innerHTML = data.map(r => `
                 <details class="report-item">
                     <summary>
                         <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#8e9aaf;"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
                         <div class="report-score">${r.score}</div>
-                        <div style="font-size:11px; color:#8e9aaf; font-weight:700;">会場: ${r.venue}</div>
+                        <div style="font-size:11px; color:#8e9aaf; font-weight:700;">会場/大会: ${r.venue}</div>
                     </summary>
                     <div style="padding:20px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05);">
                         <div style="font-weight:900; color:#00d4ff; margin-bottom:5px;">イベント:</div><div style="white-space:pre-wrap; color:#fff; margin-bottom:15px; font-size:13px;">${r.detail}</div>
@@ -639,13 +730,15 @@
                     if(live.timerLeft > 0) {
                         live.timerLeft--;
                     } else {
+                        // 試合時間が0になっても止まらず、自動的にATモードへ
                         live.isAT = true;
                         addEvent("アディショナルタイム開始");
                     }
                 } else {
                     live.atSeconds++;
+                    // 設定したATを超えても止まらない。色で通知するのみ。
                     if(live.atSeconds >= live.maxAtSeconds && live.maxAtSeconds > 0) {
-                        document.getElementById('atDisplay').style.color = 'var(--yellow)';
+                        document.getElementById('atLabel').style.color = 'var(--yellow)';
                     }
                 }
                 updateUI(); 
@@ -675,7 +768,7 @@
         } else if(type==='venues') {
             const name = document.getElementById('venueInName').value.trim();
             if(name && !db.venues.includes(name)) { db.venues.push(name); localStorage.setItem('ps_venues_master', JSON.stringify(db.venues)); }
-            document.getElementById('venueName').value = '';
+            document.getElementById('venueInName').value = '';
         }
         refreshSettingsUI(); updateQuickLists();
     }
