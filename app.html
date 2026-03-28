@@ -88,13 +88,39 @@
         .action-btn { background: #f8f9fa; border: 1px solid var(--border); padding: 14px; border-radius: 10px; font-weight: 700; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .action-btn:active { background: var(--primary); color: #fff; }
 
-        /* Updated Player Registration Layout */
+        /* --- UPDATED PHOTO INPUT CSS --- */
         .player-reg-grid { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: flex-start; }
         .photo-input-section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .photo-input-wrap { width: 64px; height: 64px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 2px dashed #ddd; overflow: visible; }
-        .photo-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
-        .photo-clear-btn { position: absolute; top: -4px; right: -4px; background: var(--secondary); color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 800; display: none; align-items: center; justify-content: center; z-index: 10; border: 2px solid #fff; }
+        .photo-input-wrap { 
+            width: 64px; height: 64px; background: #f8f9fa; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            position: relative; cursor: pointer; border: 2px dashed #ddd; 
+            overflow: visible; /* Clear btn needs to be visible outside */
+        }
+        /* Make the actual input invisible but covering the whole circle */
+        .photo-input-wrap input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .photo-preview { 
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover; 
+            display: none; position: absolute; top: 0; left: 0; z-index: 2;
+        }
+        .photo-clear-btn { 
+            position: absolute; top: -4px; right: -4px; background: var(--secondary); color: #fff; 
+            width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 800; 
+            display: none; align-items: center; justify-content: center; 
+            z-index: 10; /* Top of everything */
+            border: 2px solid #fff; 
+        }
         .photo-label { font-size: 10px; font-weight: 800; color: var(--text-sub); text-align: center; }
+        /* ------------------------------- */
 
         .category-header { font-size: 11px; font-weight: 800; color: var(--primary); background: #f0f4f8; padding: 6px 12px; border-radius: 6px; margin: 15px 0 8px 0; border-left: 4px solid var(--primary); }
         .chip-del { background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -236,6 +262,7 @@
                     <option value="公式戦">公式戦</option>
                     <option value="トレーニングマッチ">練習試合</option>
                     <option value="カップ戦">カップ戦</option>
+                    <option value="その他">その他</option>
                 </select>
             </div>
             <div id="historyList"></div>
