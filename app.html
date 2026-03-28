@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.5.0 - クラウド完全同期版</title>
+    <title>PitchSide Pro v9.6.0 - クラウド完全同期版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -44,9 +44,11 @@
         button:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
         
         .report-item { margin-bottom: 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-        .report-item summary { padding: 18px; cursor: pointer; list-style: none; outline: none; display: flex; flex-direction: column; }
+        .report-item summary { padding: 18px; cursor: pointer; list-style: none; outline: none; display: flex; align-items: center; gap: 15px; }
         .report-score { font-size: 26px; font-weight: 800; color: var(--primary); margin: 6px 0; }
         
+        .bulk-check { width: 22px; height: 22px; cursor: pointer; accent-color: var(--primary); }
+
         .live-header { background: #fff; color: var(--text-main); padding: 20px; border-radius: 20px; margin-bottom: 20px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow); }
         .timer-display { font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--primary); }
         
@@ -88,11 +90,9 @@
         .action-btn { background: #f8f9fa; border: 1px solid var(--border); padding: 14px; border-radius: 10px; font-weight: 700; margin-bottom: 8px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .action-btn:active { background: var(--primary); color: #fff; }
 
-        /* Updated Player Registration Layout */
         .player-reg-grid { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: flex-start; }
         .photo-input-section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .photo-input-wrap { width: 64px; height: 64px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 2px dashed #ddd; overflow: visible; }
-        /* File input fully invisible to prevent overlap issues */
         .photo-input-wrap input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5; }
         .photo-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; position: absolute; top: 0; left: 0; z-index: 2;}
         .photo-clear-btn { position: absolute; top: -4px; right: -4px; background: var(--secondary); color: #fff; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: none; align-items: center; justify-content: center; z-index: 10; border: 2px solid #fff; }
@@ -112,7 +112,7 @@
         <div style="width:70px; height:70px; background:var(--gradient); border-radius:18px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 20px rgba(0,0,0,0.1);">
             <div style="font-size:32px; font-weight:800; color:#fff;">P</div>
         </div>
-        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">Cloud v9.5</span></h1>
+        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">Cloud v9.6</span></h1>
         <div class="form-group">
             <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px; padding:18px;">
         </div>
@@ -241,6 +241,9 @@
                     <option value="その他">その他</option>
                 </select>
             </div>
+            
+            <button id="bulkDeleteBtn" onclick="deleteSelectedReports()" style="display:none; background:var(--secondary); margin-bottom:15px; height:46px; font-size:14px;">選択したレポートを削除</button>
+            
             <div id="historyList"></div>
         </div>
 
@@ -337,7 +340,6 @@
     const SUPABASE_KEY = 'sb_publishable_TWz1alSKy36qDAGtmZ3DFg_7N7sdmBz';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // DBを空の状態で初期化（起動時にSupabaseから取得して埋める）
     let db = { teams: [], players: [], opps: [], venues: [], tournaments: [] };
 
     let live = { 
@@ -354,14 +356,13 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         if (localStorage.getItem('ps_logged_in') === 'true') {
-            await loadMasterData(); // クラウドからマスターデータをロード
+            await loadMasterData();
             enterMainUI();
             const lastTab = localStorage.getItem('ps_active_tab') || 'tabLive';
             showTab(lastTab, document.getElementById('nav' + lastTab.replace('tab', '')));
         }
     });
 
-    // --- クラウドからのデータ取得ロジック ---
     async function loadMasterData() {
         const { data: teamsData } = await supabaseClient.from('teams_master').select('*').order('team');
         const { data: playersData } = await supabaseClient.from('players_master').select('*').order('num');
@@ -466,16 +467,67 @@
     function modifyOppScore(v) { if (v > 0) showActionModal("失点内容", `<div class="action-btn" onclick="live.score.opp++; addEvent('失点'); closeModals(); updateUI(); syncToCloud();">⚽ 通常失点</div><div class="action-btn" onclick="recordGoal(null, false, true)">⚠️ オウンゴール</div>`); else if (live.score.opp > 0) { live.score.opp--; addEvent("失点取消"); updateUI(); syncToCloud(); } }
 
     async function syncToCloud() { if(!live.currentId) return; const report = { score: `${live.score.own} - ${live.score.opp}`, detail: live.events.map(e => `[${e.time}] ${e.text}`).join('\n'), memo: document.getElementById('liveMemo').value }; await supabaseClient.from('match_reports').update(report).eq('id', live.currentId); }
+    
     async function fetchReports() {
         const teamF = document.getElementById('historyFilterMyTeam').value, catF = document.getElementById('historyFilterCategory').value, typeF = document.getElementById('historyFilterType').value;
         let query = supabaseClient.from('match_reports').select('*').order('created_at', { ascending: false });
         if (teamF !== 'all') query = query.ilike('my_team', `%${teamF}%`); if (catF !== 'all') query = query.ilike('my_team', `%(${catF})%`); if (typeF !== 'all') query = query.ilike('venue', `%[${typeF}]%`);
-        const { data } = await query; if(data) { document.getElementById('historyList').innerHTML = data.map(r => `<details class="report-item"><summary><div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div><div class="report-score">${r.score}</div><div style="font-size:10px; color:var(--text-sub); font-weight:700;">${r.venue}</div></summary><div style="padding:20px; background:#f8f9fa; border-top:1px solid var(--border);"><label class="form-label">イベント記録</label><textarea id="editDetail_${r.id}" style="height:120px; font-size:13px; margin-bottom:15px;">${r.detail}</textarea><label class="form-label">メモ</label><textarea id="editMemo_${r.id}" style="height:80px; font-size:13px; margin-bottom:15px;">${r.memo || ''}</textarea><div style="display:flex; gap:10px;"><button onclick="saveEditedReport('${r.id}')" style="flex:2; height:46px; font-size:14px;">保存</button><button onclick="deleteReport('${r.id}')" style="flex:1; height:46px; font-size:14px; background:var(--secondary);">削除</button></div></div></details>`).join(''); }
+        const { data } = await query; 
+        if(data) { 
+            document.getElementById('historyList').innerHTML = data.map(r => `
+                <details class="report-item">
+                    <summary>
+                        <input type="checkbox" class="bulk-check" value="${r.id}" onclick="event.stopPropagation(); toggleBulkDeleteBtn();">
+                        <div style="flex:1;">
+                            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
+                            <div class="report-score">${r.score}</div>
+                            <div style="font-size:10px; color:var(--text-sub); font-weight:700;">${r.venue}</div>
+                        </div>
+                    </summary>
+                    <div style="padding:20px; background:#f8f9fa; border-top:1px solid var(--border);">
+                        <label class="form-label">イベント記録</label><textarea id="editDetail_${r.id}" style="height:120px; font-size:13px; margin-bottom:15px;">${r.detail}</textarea>
+                        <label class="form-label">メモ</label><textarea id="editMemo_${r.id}" style="height:80px; font-size:13px; margin-bottom:15px;">${r.memo || ''}</textarea>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="saveEditedReport('${r.id}')" style="flex:2; height:46px; font-size:14px;">保存</button>
+                            <button onclick="deleteReport('${r.id}')" style="flex:1; height:46px; font-size:14px; background:var(--secondary);">削除</button>
+                        </div>
+                    </div>
+                </details>`).join(''); 
+        }
+        toggleBulkDeleteBtn(); // リセット時にボタンを隠す
     }
+
+    // --- 一括削除関連のロジック ---
+    function toggleBulkDeleteBtn() {
+        const checkedCount = document.querySelectorAll('.bulk-check:checked').length;
+        document.getElementById('bulkDeleteBtn').style.display = checkedCount > 0 ? 'block' : 'none';
+        document.getElementById('bulkDeleteBtn').innerText = `${checkedCount}件のレポートを削除`;
+    }
+
+    async function deleteSelectedReports() {
+        const checkboxes = document.querySelectorAll('.bulk-check:checked');
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+        if(ids.length === 0) return;
+        
+        // 【確認ダイアログなしで即削除】
+        const { error } = await supabaseClient.from('match_reports').delete().in('id', ids);
+        if(!error) { fetchReports(); } else alert("エラーが発生しました");
+    }
+    // ------------------------------
+
     async function saveEditedReport(id) { const detail = document.getElementById(`editDetail_${id}`).value, memo = document.getElementById(`editMemo_${id}`).value; const { error } = await supabaseClient.from('match_reports').update({ detail, memo }).eq('id', id); if(!error) alert("更新しました"); else alert("エラー"); }
-    async function deleteReport(id) { if(confirm("このレポートを削除しますか？")) { const { error } = await supabaseClient.from('match_reports').delete().eq('id', id); if(!error) { alert("削除しました"); fetchReports(); } else alert("エラー"); } }
+    
+    // 【確認ダイアログなしで即削除（単体）】
+    async function deleteReport(id) {
+        const { error } = await supabaseClient.from('match_reports').delete().eq('id', id);
+        if(!error) { fetchReports(); } else alert("エラーが発生しました");
+    }
+
     function updateHistoryCategoryFilter() { const team = document.getElementById('historyFilterMyTeam').value, filterC = document.getElementById('historyFilterCategory'); if (team === 'all') filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>'; else { const cats = db.teams.filter(t => t.team === team).map(t => t.category); filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join(''); } fetchReports(); }
+    
+    // 試合終了は誤操作防止のため確認ダイアログを残しています
     async function endPeriod() { if(confirm("試合を終了しますか？")) { await syncToCloud(); location.reload(); } }
+    
     function addEvent(txt) { const time = live.isAT ? `${formatTime(live.timerLeft + live.atSeconds)} (AT)` : formatTime(live.timerLeft); live.events.push({ time, text: txt }); const entry = document.createElement('div'); entry.textContent = `${time} ${txt}`; document.getElementById('eventLog').prepend(entry); }
     function formatTime(s) { const m = Math.floor(Math.abs(s)/60), sc = Math.abs(s)%60; return `${m.toString().padStart(2,'0')}:${sc.toString().padStart(2,'0')}`; }
     function toggleTimer() { const btn = document.getElementById('btnTimer'); if(live.timerInterval) { clearInterval(live.timerInterval); live.timerInterval = null; btn.innerText = "再開"; } else { live.timerInterval = setInterval(() => { if(!live.isAT) { if(live.timerLeft > 0) live.timerLeft--; else { live.isAT = true; addEvent("AT開始"); } } else { live.atSeconds++; } updateUI(); }, 1000); btn.innerText = "停止"; } }
@@ -493,7 +545,6 @@
         } 
     }
 
-    // --- クラウドへの保存ロジックに変更 ---
     async function addMaster(tableType) {
         if(tableType === 'teams_master') { 
             const team = document.getElementById('teamInName').value.trim(), cat = document.getElementById('categoryInName').value.trim(); 
@@ -521,32 +572,29 @@
             document.getElementById('tournamentInName').value = ''; 
         }
         
-        await loadMasterData(); // DBから再取得
+        await loadMasterData();
         refreshSettingsUI(); 
         updateQuickLists();
     }
 
-    // --- クラウドからの削除ロジックに変更 ---
+    // 【確認ダイアログなしで即削除（マスターデータ）】
     async function deleteMaster(tableType, id) { 
-        if(confirm("削除しますか？")) { 
-            await supabaseClient.from(tableType).delete().eq('id', id);
-            await loadMasterData(); // DBから再取得
-            refreshSettingsUI(); 
-            updateQuickLists(); 
-        } 
+        await supabaseClient.from(tableType).delete().eq('id', id);
+        await loadMasterData();
+        refreshSettingsUI(); 
+        updateQuickLists(); 
     }
 
     function updateCategorySelect(teamId, catId) { const team = document.getElementById(teamId).value, catS = document.getElementById(catId); if (!team) { catS.innerHTML = '<option value="">選択</option>'; return; } catS.innerHTML = '<option value="">選択</option>' + db.teams.filter(t => t.team === team).map(t => `<option value="${t.category}">${t.category}</option>`).join(''); }
     function updateSetupCategoryFilter() { updateCategorySelect('setupMyTeam', 'setupCategory'); updateUI(); }
     
-    // --- 表示ロジック（クラウドから取得したIDを使用するように変更） ---
     function refreshSettingsUI() {
         document.getElementById('teamMasterList').innerHTML = db.teams.map((t) => `<div class="chip-del">${t.team} - ${t.category} <span class="del-btn" onclick="deleteMaster('teams_master', '${t.id}')">×</span></div>`).join('');
         const grouped = {}; db.players.forEach(p => { const k = `${p.team || '未設定'} - ${p.category || '未設定'}`; if (!grouped[k]) grouped[k] = []; grouped[k].push(p); });
         let html = ''; for (const [k, players] of Object.entries(grouped)) { html += `<div class="category-header">${k}</div>`; players.forEach(p => { html += `<div class="chip-del"><div style="display:flex;align-items:center;gap:10px;">${p.photo ? `<img src="${p.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : `<div style="width:24px;height:24px;border-radius:50%;background:#eee;"></div>`}<span>${p.num?p.num+' ':''}${p.name}</span></div><div><span class="del-btn" onclick="deleteMaster('players_master', '${p.id}')">×</span></div></div>`; }); }
         document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center;font-size:12px;color:#bdc3c7;">登録なし</p>';
         document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t) => `<div class="chip-del">${t.name} <span class="del-btn" onclick="deleteMaster('tournaments_master', '${t.id}')">×</span></div>`).join('');
-        document.getElementById('oppMasterList').innerHTML = db.opps.map((o) => `<div class="chip-del">${o.name} <span class="del-btn" onclick="deleteMaster('opponents_master', '${t.id}')">×</span></div>`).join('');
+        document.getElementById('oppMasterList').innerHTML = db.opps.map((o) => `<div class="chip-del">${o.name} <span class="del-btn" onclick="deleteMaster('opponents_master', '${o.id}')">×</span></div>`).join('');
         const pT = document.getElementById('pInTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; pT.innerHTML = '<option value="">選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
     }
     
