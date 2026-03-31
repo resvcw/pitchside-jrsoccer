@@ -434,15 +434,37 @@
     });
 
     async function loadMasterData() {
-        const { data: teamsData } = await supabaseClient.from('teams_master').select('*').order('team');
-        const { data: playersData } = await supabaseClient.from('players_master').select('*').order('num');
-        const { data: oppsData } = await supabaseClient.from('opponents_master').select('*').order('created_at');
-        const { data: tourData } = await supabaseClient.from('tournaments_master').select('*').order('created_at');
-        
-        db.teams = teamsData || [];
-        db.players = playersData || [];
-        db.opps = oppsData || [];
-        db.tournaments = tourData || [];
+        try {
+            const { data: teamsData, error: teamsError } = await supabaseClient.from('teams_master').select('*').order('team');
+            const { data: playersData, error: playersError } = await supabaseClient.from('players_master').select('*').order('num');
+            const { data: oppsData, error: oppsError } = await supabaseClient.from('opponents_master').select('*').order('created_at');
+            const { data: tourData, error: tourError } = await supabaseClient.from('tournaments_master').select('*').order('created_at');
+            
+            if (teamsError) console.error('Teams load error:', teamsError);
+            if (playersError) console.error('Players load error:', playersError);
+            if (oppsError) console.error('Opponents load error:', oppsError);
+            if (tourError) console.error('Tournaments load error:', tourError);
+            
+            db.teams = teamsData || [];
+            db.players = playersData || [];
+            db.opps = oppsData || [];
+            db.tournaments = tourData || [];
+            
+            localStorage.setItem('ps_teams_cache', JSON.stringify(db.teams));
+            localStorage.setItem('ps_players_cache', JSON.stringify(db.players));
+            localStorage.setItem('ps_opps_cache', JSON.stringify(db.opps));
+            localStorage.setItem('ps_tournaments_cache', JSON.stringify(db.tournaments));
+        } catch(e) {
+            console.error('loadMasterData error:', e);
+            const cachedTeams = localStorage.getItem('ps_teams_cache');
+            const cachedPlayers = localStorage.getItem('ps_players_cache');
+            const cachedOpps = localStorage.getItem('ps_opps_cache');
+            const cachedTournaments = localStorage.getItem('ps_tournaments_cache');
+            db.teams = cachedTeams ? JSON.parse(cachedTeams) : [];
+            db.players = cachedPlayers ? JSON.parse(cachedPlayers) : [];
+            db.opps = cachedOpps ? JSON.parse(cachedOpps) : [];
+            db.tournaments = cachedTournaments ? JSON.parse(cachedTournaments) : [];
+        }
     }
 
     function checkPass() { if(document.getElementById('passcode').value === '2026') { localStorage.setItem('ps_logged_in', 'true'); location.reload(); } else { alert("パスコードが違います"); } }
