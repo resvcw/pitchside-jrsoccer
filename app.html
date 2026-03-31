@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v10.2.0 - オリジナルUI復旧＆クラウド統合版</title>
+    <title>PitchSide Pro v10.3.0 - バグ修正・機能改善版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -20,7 +20,6 @@
         }
         *, *::before, *::after { box-sizing: border-box; }
         html, body { overflow-x: hidden; width: 100%; position: relative; }
-        /* ▼ OS標準の引き伸ばしバウンスを完全に防止 ▼ */
         body { font-family: 'Inter', -apple-system, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 15px; transition: transform 0.2s cubic-bezier(0,0,0.2,1); }
@@ -103,6 +102,7 @@
         .category-header { font-size: 11px; font-weight: 800; color: var(--primary); background: #f0f4f8; padding: 6px 12px; border-radius: 6px; margin: 15px 0 8px 0; border-left: 4px solid var(--primary); }
         .chip-del { background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .del-btn { color: var(--secondary); font-weight: 800; padding: 5px; cursor: pointer; }
+        .edit-btn { color: var(--primary); font-weight: 800; padding: 5px; cursor: pointer; margin-right: 5px; }
 
         /* ▼ ダッシュボード用スタイル統合 ▼ */
         .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
@@ -112,14 +112,9 @@
         .dash-list { list-style: none; padding: 0; margin: 0; }
 
         @media print {
-            body { background: #fff; padding: 0; color: #000; }
-            .bottom-nav, .nav-item, button, #loginSection, .modal-overlay, .tab-content { display: none !important; }
-            .container { max-width: 100%; padding: 0; margin: 0; box-shadow: none; }
-            #tabDashboard { display: block !important; } 
-            .card { border: 2px solid #333; box-shadow: none; break-inside: avoid; margin-bottom: 20px; }
-            .dash-card { border: 1px solid #ccc; box-shadow: none; }
-            h2 { color: #000 !important; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            @page { size: A4 portrait; margin: 15mm; }
+           h1, h2, h3 { color: #000 !important; }
+           h2 { color: #000 !important; border-bottom: 2px solid #000; padding-bottom: 10px; }
+           @page { size: A4 portrait; margin: 15mm; }
         }
     </style>
 </head>
@@ -132,7 +127,7 @@
         <div style="width:70px; height:70px; background:var(--gradient); border-radius:18px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 20px rgba(0,0,0,0.1);">
             <div style="font-size:32px; font-weight:800; color:#fff;">P</div>
         </div>
-        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">Cloud v10.2</span></h1>
+        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">Cloud v10.3</span></h1>
         <div class="form-group">
             <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px; padding:18px;">
         </div>
@@ -389,13 +384,13 @@
     };
 
     const formations = {
-        "3-3-1": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'20%',label:'DFL'}, {id:'df2',t:'75%',l:'50%',label:'DFC'}, {id:'df3',t:'75%',l:'80%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'15%',l:'50%',label:'FW'} ],
-        "2-4-1": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'45%',l:'15%',label:'ML'}, {id:'mf2',t:'45%',l:'38%',label:'MCL'}, {id:'mf3',t:'45%',l:'62%',label:'MCR'}, {id:'mf4',t:'45%',l:'85%',label:'MR'}, {id:'fw1',t:'15%',l:'50%',label:'FW'} ],
-        "3-2-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'20%',label:'DFL'}, {id:'df2',t:'75%',l:'50%',label:'DFC'}, {id:'df3',t:'75%',l:'80%',label:'DFR'}, {id:'mf1',t:'45%',l:'35%',label:'MCL'}, {id:'mf2',t:'45%',l:'65%',label:'MCR'}, {id:'fw1',t:'20%',l:'30%',label:'FWL'}, {id:'fw2',t:'20%',l:'70%',label:'FWR'} ]
+        "3-3-1": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'20%',label:'DFL'}, {id:'df2',t:'75%',l:'50%',label:'DFC'}, {id:'df3',t:'75%',l:'80%',label:'DFR'}, {id:'mf1',t:'45%',l:'20%',label:'MFL'}, {id:'mf2',t:'45%',l:'50%',label:'MFC'}, {id:'mf3',t:'45%',l:'80%',label:'MFR'}, {id:'fw1',t:'20%',l:'35%',label:'FWL'}, {id:'fw2',t:'20%',l:'65%',label:'FWR'} ],
+        "2-4-1": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'30%',label:'DFL'}, {id:'df2',t:'75%',l:'70%',label:'DFR'}, {id:'mf1',t:'50%',l:'15%',label:'MFL'}, {id:'mf2',t:'50%',l:'40%',label:'MFM1'}, {id:'mf3',t:'50%',l:'60%',label:'MFM2'}, {id:'mf4',t:'50%',l:'85%',label:'MFR'}, {id:'fw1',t:'20%',l:'50%',label:'FW'} ],
+        "3-2-2": [ {id:'gk',t:'90%',l:'50%',label:'GK'}, {id:'df1',t:'75%',l:'20%',label:'DFL'}, {id:'df2',t:'75%',l:'50%',label:'DFC'}, {id:'df3',t:'75%',l:'80%',label:'DFR'}, {id:'mf1',t:'50%',l:'35%',label:'MFL'}, {id:'mf2',t:'50%',l:'65%',label:'MFR'}, {id:'fw1',t:'25%',l:'35%',label:'FWL'}, {id:'fw2',t:'25%',l:'65%',label:'FWR'} ]
     };
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        if (localStorage.getItem('ps_logged_in') === 'true') {
+    window.addEventListener('load', async () => {
+        if(localStorage.getItem('ps_logged_in') === 'true') {
             await loadMasterData();
             enterMainUI();
             const lastTab = localStorage.getItem('ps_active_tab') || 'tabLive';
@@ -446,7 +441,6 @@
     let startY = 0, pulling = false;
     const appContainer = document.getElementById('appContainer'), ptrIndicator = document.getElementById('ptr-indicator'), ptrSpinner = document.getElementById('ptr-spinner'), ptrText = document.getElementById('ptr-text');
     
-    // ▼ スワイプリロードの制御（ライブ・設定では作動させない） ▼
     window.addEventListener('touchstart', (e) => { 
         const currentTab = localStorage.getItem('ps_active_tab') || 'tabLive';
         if (currentTab !== 'tabHistory' && currentTab !== 'tabDashboard') return;
@@ -479,7 +473,7 @@
         const btn = document.getElementById('kickoffBtn'); btn.disabled = true;
         const teamDisp = myCat ? `${myTeam} (${myCat})` : myTeam, venueDisp = tour ? `${venue} [${type}] [${tour}]` : `${venue} [${type}]`;
         const { data, error } = await supabaseClient.from('match_reports').insert([{ my_team: teamDisp, opponent: opp, venue: venueDisp, score: "0 - 0", detail: "試合開始", memo: "" }]).select();
-        if(!error && data) {
+        if(!error && data && data.length > 0) {
             live.currentId = data[0].id; live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false; live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value; live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
             document.getElementById('myTeamDisplay').innerText = teamDisp; document.getElementById('oppDisplay').innerText = opp; document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block'; updateUI(); btn.disabled = false;
         } else { alert("エラー: 保存できませんでした"); btn.disabled = false; }
@@ -498,9 +492,9 @@
             else { const g = live.playerGoals[p.id] || 0, c = live.playerCards[p.id]; slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}', '${pos.id}')">${p.photo ? `<img src="${p.photo}" class="player-photo">` : ''}<span class="jersey-num-overlay">${p.num || ''}</span></div>${c ? `<div style="position:absolute;top:0;right:0;width:10px;height:14px;background:var(--${c==='yellow'?'yellow':'secondary'});border-radius:2px;"></div>` : ''}<div class="icon-name" onclick="showPlayerActions('${p.id}', '${pos.id}')">${p.name}${g>0 ? ` (${g})` : ''}</div>`; initDraggable(slot, p.id, pos.id); }
             pitch.appendChild(slot);
         });
-        const onIds = Object.values(live.pitchPositions), benchGrid = document.getElementById('benchGrid'); benchGrid.innerHTML = '';
+        const benchGrid = document.getElementById('benchGrid'); benchGrid.innerHTML = '';
         let players = db.players; if (live.selectedTeam) { players = players.filter(p => p.team === live.selectedTeam); if (live.selectedCategory) players = players.filter(p => p.category === live.selectedCategory); }
-        players.filter(p => !onIds.includes(p.id)).forEach(p => { const chip = document.createElement('div'); chip.className = 'player-chip bench'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showBenchActions(p.id); initDraggable(chip, p.id); benchGrid.appendChild(chip); });
+        players.filter(p => !Object.values(live.pitchPositions).includes(p.id)).forEach(p => { const chip = document.createElement('div'); chip.className = 'player-chip bench'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showBenchActions(p.id); initDraggable(chip, p.id); benchGrid.appendChild(chip); });
         const onPitchGrid = document.getElementById('onPitchGrid'); onPitchGrid.innerHTML = '';
         Object.entries(live.pitchPositions).forEach(([posId, pId]) => { const p = db.players.find(x => x.id === pId); if(p) { const chip = document.createElement('div'); chip.className = 'player-chip on-pitch'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showPlayerActions(p.id, posId); initDraggable(chip, p.id, posId); onPitchGrid.appendChild(chip); } });
     }
@@ -560,13 +554,11 @@
                     </div>
                 </details>`).join(''); 
             
-            // ▼ ダッシュボードの集計処理を実行 ▼
             updateDashboard(data);
         }
         toggleBulkDeleteBtn();
     }
 
-    // ▼ ダッシュボード用の集計エンジン ▼
     function updateDashboard(data) {
         let total = data.length, wins = 0, draws = 0, losses = 0, gf = 0, ga = 0, cs = 0; const scorers = {};
         data.forEach(r => {
@@ -678,7 +670,6 @@
         } 
     }
 
-    // ▼ カスケード削除機能 ▼
     async function deleteMaster(tableType, id) { 
         if(tableType === 'teams_master') {
             const t = db.teams.find(x => x.id === id);
@@ -690,12 +681,12 @@
         updateQuickLists(); 
     }
 
-    // ▼ ストレージ（Storage）アップロード機能への最適化 ▼
     async function addMaster(tableType) {
         if(tableType === 'teams_master') { 
             const team = document.getElementById('teamInName').value.trim(), cat = document.getElementById('categoryInName').value.trim(); 
             if(team && cat) { 
                 await supabaseClient.from('teams_master').insert([{ team, category: cat }]); 
+                document.getElementById('teamInName').value = '';
                 document.getElementById('categoryInName').value = ''; 
             } 
         }
@@ -705,7 +696,6 @@
                 const btn = document.getElementById('addPlayerBtn'); btn.disabled = true; btn.innerText = "保存中...";
                 let photoUrl = null;
                 
-                // 画像が選択されている場合のみ、Supabase Storageへアップロードする
                 if (currentPhotoData) {
                     try {
                         const blob = await (await fetch(currentPhotoData)).blob();
@@ -716,7 +706,6 @@
                     } catch(e) { console.error("画像アップロードエラー", e); }
                 }
                 
-                // DB互換性を保つため photo_url と photo 両方にURLを保存
                 await supabaseClient.from('players_master').insert([{ num, name, photo: photoUrl, photo_url: photoUrl, team, category: cat }]);
                 document.getElementById('pInNum').value = ''; document.getElementById('pInName').value = ''; clearPhotoSelection();
                 btn.disabled = false; btn.innerText = "選手を追加登録";
