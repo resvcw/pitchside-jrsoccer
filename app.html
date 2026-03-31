@@ -507,11 +507,23 @@
         if(!myTeam || !opp || !venue) { alert("自チーム、相手、会場を入力してください"); return; }
         const btn = document.getElementById('kickoffBtn'); btn.disabled = true;
         const teamDisp = myCat ? `${myTeam} (${myCat})` : myTeam, venueDisp = tour ? `${venue} [${type}] [${tour}]` : `${venue} [${type}]`;
-        const { data, error } = await supabaseClient.from('match_reports').insert([{ my_team: teamDisp, opponent: opp, venue: venueDisp, score: "0 - 0", detail: "試合開始", memo: "" }]).select();
-        if(!error && data && data.length > 0) {
-            live.currentId = data[0].id; live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false; live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value; live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
+        try {
+            const { data, error } = await supabaseClient.from('match_reports').insert([{ my_team: teamDisp, opponent: opp, venue: venueDisp, score: "0 - 0", detail: "試合開始", memo: "" }]).select();
+            if(!error && data && data.length > 0) {
+                live.currentId = data[0].id; live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false; live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value; live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
+                document.getElementById('myTeamDisplay').innerText = teamDisp; document.getElementById('oppDisplay').innerText = opp; document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block'; updateUI(); btn.disabled = false;
+            } else {
+                console.error('Database error:', error);
+                live.currentId = 'local_' + Date.now();
+                live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false; live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value; live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
+                document.getElementById('myTeamDisplay').innerText = teamDisp; document.getElementById('oppDisplay').innerText = opp; document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block'; updateUI(); btn.disabled = false;
+            }
+        } catch(e) {
+            console.error('Kickoff error:', e);
+            live.currentId = 'local_' + Date.now();
+            live.timerLeft = mins * 60; live.atSeconds = 0; live.maxAtSeconds = 0; live.isAT = false; live.score = { own: 0, opp: 0 }; live.events = []; live.memo = ""; live.formation = document.getElementById('formationSelect').value; live.pitchPositions = {}; live.playerGoals = {}; live.playerCards = {}; live.selectedTeam = myTeam; live.selectedCategory = myCat;
             document.getElementById('myTeamDisplay').innerText = teamDisp; document.getElementById('oppDisplay').innerText = opp; document.getElementById('setupScreen').style.display = 'none'; document.getElementById('liveScreen').style.display = 'block'; updateUI(); btn.disabled = false;
-        } else { alert("エラー: 保存できませんでした"); btn.disabled = false; }
+        }
     }
 
     function updateUI() {
