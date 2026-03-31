@@ -180,8 +180,12 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">会場</label>
-                        <div id="quickVenueList" style="margin-bottom:8px;"></div>
-                        <input type="text" id="venueName" placeholder="会場・グラウンド名を入力">
+                        <div style="display:flex; gap:8px;">
+                            <select id="venueName" style="flex:1;">
+                                <option value="">会場を選択</option>
+                            </select>
+                            <input type="text" id="venueNameCustom" placeholder="新規会場" style="flex:1;">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">試合形式・大会名</label>
@@ -378,7 +382,16 @@
                 </div>
 
                 <div class="card">
-                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">🎯 対戦相手</h3>
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">📍 試合会場</h3>
+                    <div id="venueMasterList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    <div style="display:flex; gap:8px; margin-top:15px;">
+                        <input type="text" id="venueInName" placeholder="会場名を入力" style="flex:1;">
+                        <button onclick="addMaster('venues_master')" style="width:auto; padding:12px 20px; height:46px; font-size:12px;">追加</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">🏃 対戦相手</h3>
                     <div id="oppMasterList" style="display:flex; flex-direction:column; gap:8px;"></div>
                     <div style="display:flex; gap:8px; margin-top:15px;">
                         <input type="text" id="oppInName" placeholder="対戦相手名を入力" style="flex:1;">
@@ -470,31 +483,37 @@
             const { data: playersData, error: playersError } = await supabaseClient.from('players_master').select('*').order('num');
             const { data: oppsData, error: oppsError } = await supabaseClient.from('opponents_master').select('*').order('created_at');
             const { data: tourData, error: tourError } = await supabaseClient.from('tournaments_master').select('*').order('created_at');
+            const { data: venuesData, error: venuesError } = await supabaseClient.from('venues_master').select('*').order('created_at');
             
             if (teamsError) console.error('Teams load error:', teamsError);
             if (playersError) console.error('Players load error:', playersError);
             if (oppsError) console.error('Opponents load error:', oppsError);
             if (tourError) console.error('Tournaments load error:', tourError);
+            if (venuesError) console.error('Venues load error:', venuesError);
             
             db.teams = teamsData || [];
             db.players = playersData || [];
             db.opps = oppsData || [];
             db.tournaments = tourData || [];
+            db.venues = venuesData || [];
             
             localStorage.setItem('ps_teams_cache', JSON.stringify(db.teams));
             localStorage.setItem('ps_players_cache', JSON.stringify(db.players));
             localStorage.setItem('ps_opps_cache', JSON.stringify(db.opps));
             localStorage.setItem('ps_tournaments_cache', JSON.stringify(db.tournaments));
+            localStorage.setItem('ps_venues_cache', JSON.stringify(db.venues));
         } catch(e) {
             console.error('loadMasterData error:', e);
             const cachedTeams = localStorage.getItem('ps_teams_cache');
             const cachedPlayers = localStorage.getItem('ps_players_cache');
             const cachedOpps = localStorage.getItem('ps_opps_cache');
             const cachedTournaments = localStorage.getItem('ps_tournaments_cache');
+            const cachedVenues = localStorage.getItem('ps_venues_cache');
             db.teams = cachedTeams ? JSON.parse(cachedTeams) : [];
             db.players = cachedPlayers ? JSON.parse(cachedPlayers) : [];
             db.opps = cachedOpps ? JSON.parse(cachedOpps) : [];
             db.tournaments = cachedTournaments ? JSON.parse(cachedTournaments) : [];
+            db.venues = cachedVenues ? JSON.parse(cachedVenues) : [];
         }
     }
 
@@ -556,7 +575,11 @@
     });
 
     async function startMatch() {
-        const myTeam = document.getElementById('setupMyTeam').value, myCat = document.getElementById('setupCategory').value, opp = document.getElementById('oppName').value.trim(), venue = document.getElementById('venueName').value.trim(), mins = parseInt(document.getElementById('halfMinutes').value), type = document.getElementById('matchType').value, tour = document.getElementById('tournamentSelect').value;
+        const myTeam = document.getElementById('setupMyTeam').value, myCat = document.getElementById('setupCategory').value, opp = document.getElementById('oppName').value.trim();
+        let venue = document.getElementById('venueName').value.trim();
+        const customVenue = document.getElementById('venueNameCustom').value.trim();
+        if (customVenue) venue = customVenue;
+        const mins = parseInt(document.getElementById('halfMinutes').value), type = document.getElementById('matchType').value, tour = document.getElementById('tournamentSelect').value;
         if(!myTeam || !opp || !venue) { alert("自チーム、相手、会場を入力してください"); return; }
         const btn = document.getElementById('kickoffBtn'); btn.disabled = true;
         const teamDisp = myCat ? `${myTeam} (${myCat})` : myTeam, venueDisp = tour ? `${venue} [${type}] [${tour}]` : `${venue} [${type}]`;
@@ -915,6 +938,11 @@
             if(name) { await supabaseClient.from('tournaments_master').insert([{ name }]); } 
             document.getElementById('tournamentInName').value = ''; 
         }
+        else if(tableType === 'venues_master') { 
+            const name = document.getElementById('venueInName').value.trim(); 
+            if(name) { await supabaseClient.from('venues_master').insert([{ name }]); } 
+            document.getElementById('venueInName').value = ''; 
+        }
         
         await loadMasterData();
         refreshSettingsUI(); 
@@ -931,12 +959,14 @@
         document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center;font-size:12px;color:#bdc3c7;padding:20px;">登録選手がありません</p>';
         document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t) => `<div class="opp-chip"><div class="opp-chip-content"><div class="opp-chip-name">${t.name}</div></div><div class="opp-chip-actions"><button class="chip-action-btn" onclick="deleteMaster('tournaments_master', '${t.id}')">🗑️</button></div></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o) => `<div class="opp-chip"><div class="opp-chip-content"><div class="opp-chip-name">${o.name}</div></div><div class="opp-chip-actions"><button class="chip-action-btn" onclick="deleteMaster('opponents_master', '${o.id}')">🗑️</button></div></div>`).join('');
+        document.getElementById('venueMasterList').innerHTML = db.venues.map((v) => `<div class="opp-chip"><div class="opp-chip-content"><div class="opp-chip-name">${v.name}</div></div><div class="opp-chip-actions"><button class="chip-action-btn" onclick="deleteMaster('venues_master', '${v.id}')">🗑️</button></div></div>`).join('');
         const pT = document.getElementById('pInTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; pT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
     }
     
     function updateQuickLists() {
         document.getElementById('quickOppList').innerHTML = db.opps.map(x => `<span style="display:inline-block;padding:5px 10px;background:#eee;border-radius:6px;font-size:11px;margin:0 5px 5px 0;cursor:pointer;" onclick="document.getElementById('oppName').value='${x.name}';">${x.name}</span>`).join('');
         document.getElementById('tournamentSelect').innerHTML = '<option value="">大会名を選択</option>' + db.tournaments.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+        document.getElementById('venueName').innerHTML = '<option value="">会場を選択</option>' + db.venues.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
         const setupT = document.getElementById('setupMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; setupT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join(''); const setupC = document.getElementById('setupCategory'); setupC.innerHTML = '<option value="">カテゴリを選択</option>';
     }
     
