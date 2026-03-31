@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v10.0.0 - プレミアムUI & クラウドストレージ完全対応</title>
+    <title>PitchSide Pro v10.1.0 - 機能復旧 & クラウド完全対応版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -14,7 +14,7 @@
             --gradient: linear-gradient(135deg, #1a2a3a 0%, #34495e 100%);
         }
         *, *::before, *::after { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        html, body { overflow-x: hidden; width: 100%; position: relative; }
+        html, body { overflow-x: hidden; width: 100%; position: relative; height: 100%; }
         body { font-family: 'Inter', -apple-system, "Hiragino Sans", sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 15px; transition: transform 0.2s cubic-bezier(0,0,0.2,1); }
@@ -30,14 +30,13 @@
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; letter-spacing: 0.5px; }
         
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; background: #fdfdfd; color: var(--text-main); transition: 0.2s; }
-        input:focus, select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(26, 42, 58, 0.05); }
+        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; background: #fdfdfd; color: var(--text-main); transition: 0.2s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(26, 42, 58, 0.05); }
         
         button { background: var(--gradient); color: #fff; border: none; padding: 16px; border-radius: 14px; font-weight: 800; width: 100%; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(26, 42, 58, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px;}
         button:active { transform: scale(0.96); opacity: 0.9; }
         button:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
         
-        /* 画像アップロード用UI */
         .photo-upload-wrap { width: 64px; height: 64px; border-radius: 50%; background: #f0f3f7; border: 2px dashed #cbd5e0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; }
         .photo-upload-wrap img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; display: none; }
         .photo-upload-wrap .upload-icon { font-size: 20px; color: #a0aec0; }
@@ -111,6 +110,9 @@
 
         #full-loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 42, 58, 0.95); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; color: #fff; font-weight: 800;}
 
+        /* ▼ ログイン画面専用の美しい配置 ▼ */
+        #loginSection { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 0 20px; }
+
         @media print {
             body { background: #fff; padding: 0; color: #000; }
             .bottom-nav, .nav-item, button, #loginSection, .modal-overlay, .tab-content { display: none !important; }
@@ -129,10 +131,12 @@
 <div id="ptr-indicator"><div class="spinner" id="ptr-spinner"></div><span id="ptr-text">スワイプして更新</span></div>
 
 <div class="container" id="appContainer">
-    <div id="loginSection" style="padding:100px 20px; text-align:center;">
-        <h1 style="font-size:24px; font-weight:900; letter-spacing:-1px; color:var(--primary);">PitchSide Pro <span style="color:var(--accent);">v10.0</span></h1>
-        <div class="form-group" style="margin:40px 0;"><input type="password" id="passcode" placeholder="Passcode" style="text-align:center; font-size:20px; letter-spacing: 4px;"></div>
-        <button id="loginBtn" onclick="checkPass()">ENTER APP</button>
+    <div id="loginSection">
+        <h1 style="font-size:28px; font-weight:900; letter-spacing:-1px; color:var(--primary); margin:0 0 40px 0;">PitchSide Pro <span style="font-size:14px; color:var(--accent); vertical-align:top;">v10.1</span></h1>
+        <div class="form-group" style="width:100%; max-width:300px; margin-bottom:20px;">
+            <input type="password" id="passcode" placeholder="Passcode" style="text-align:center; font-size:20px; letter-spacing: 4px;">
+        </div>
+        <button id="loginBtn" onclick="checkPass()" style="width:100%; max-width:300px;">ENTER APP</button>
     </div>
 
     <div id="mainUI" style="display:none;">
@@ -336,7 +340,6 @@
     function showLoading(text) { document.getElementById('full-loading-text').innerText = text; document.getElementById('full-loading').style.display = 'flex'; }
     function hideLoading() { document.getElementById('full-loading').style.display = 'none'; }
 
-    // ▼ 画像プレビューと圧縮エンジン ▼
     function previewFile(input, imgId) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -376,7 +379,6 @@
         return data.publicUrl;
     }
 
-    // ▼ マスター登録（画像URL保存対応） ▼
     async function addMaster(table) {
         if(table === 'teams_master') {
             const team = document.getElementById('teamInName').value.trim(), category = document.getElementById('categoryInName').value.trim();
@@ -432,7 +434,6 @@
         });
     }
 
-    // ▼ 画像アップ対応の編集モーダル ▼
     function openEditPlayer(id) {
         const p = db.players.find(x => x.id === id); 
         document.getElementById('editModalTitle').innerText = "選手情報の編集";
@@ -501,7 +502,7 @@
         }
     }
 
-    // ▼ ピッチとベンチの画像表示対応 ▼
+    // ▼ 修正: ピッチ表示用（onclickにpos.idを渡す） ▼
     function updateUI() {
         document.getElementById('timerText').innerText = formatTime(live.timerLeft); document.getElementById('scoreOwn').innerText = live.score.own; document.getElementById('scoreOpp').innerText = live.score.opp;
         const pitch = document.getElementById('livePitchArea'); pitch.innerHTML = '';
@@ -510,7 +511,7 @@
             if(!p) slot.innerHTML = `<div class="icon-jersey" style="border-style:dashed; opacity:0.3; background:none;" onclick="choosePlayerFor('${pos.id}')"><span style="color:#fff;">+</span></div>`;
             else {
                 const imgTag = p.photo_url ? `<img src="${p.photo_url}">` : '';
-                slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}')">${imgTag}<span class="jersey-num-overlay">${p.num||''}</span></div><div class="icon-name">${p.name}</div>`;
+                slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}', '${pos.id}')">${imgTag}<span class="jersey-num-overlay">${p.num||''}</span></div><div class="icon-name">${p.name}</div>`;
             }
             pitch.appendChild(slot);
         });
@@ -519,13 +520,40 @@
             const chip = document.createElement('div'); chip.className = 'player-chip bench'; 
             const photoEl = p.photo_url ? `<img src="${p.photo_url}" class="chip-photo">` : `<div class="chip-photo" style="background:#ddd; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555;">${p.num||'-'}</div>`;
             chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${photoEl}<span style="font-size:10px;">${p.name}</span>`; 
-            chip.onclick = () => showGoalTypeSelection(p.id); benchGrid.appendChild(chip); 
+            chip.onclick = () => showBenchActions(p.id); benchGrid.appendChild(chip); 
         });
     }
 
-    function choosePlayerFor(posId) { const onIds = Object.values(live.pitchPositions), bench = db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id)); showActionModal("出場選択", bench.map(p => `<div class="action-btn" onclick="live.pitchPositions['${posId}'] = '${p.id}'; closeModals(); updateUI(); syncToCloud();">${p.photo_url ? `<img src="${p.photo_url}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : ''} ${p.name}</div>`).join('')); }
-    function showPlayerActions(pId) { const p = db.players.find(x => x.id === pId); showActionModal(p.name, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエロー</div>`); }
-    function showGoalTypeSelection(pId) { showActionModal(db.players.find(x => x.id === pId).name, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div>`); }
+    // ▼ 修正: 選手交代・ベンチアウト機能の復活 ▼
+    function choosePlayerFor(posId) { 
+        const onIds = Object.values(live.pitchPositions), bench = db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id)); 
+        showActionModal("出場選択", bench.map(p => `<div class="action-btn" onclick="swapPlayer('${posId}', '${p.id}')">${p.photo_url ? `<img src="${p.photo_url}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : ''} ${p.name}</div>`).join('')); 
+    }
+    
+    function showPlayerActions(pId, posId) { 
+        const p = db.players.find(x => x.id === pId); 
+        showActionModal(p.name, `
+            <div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div>
+            <div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエロー</div>
+            <div class="action-btn" onclick="substitutePlayer('${posId}')" style="color:var(--text-main);">🔄 交代・ベンチへ下げる</div>
+        `); 
+    }
+
+    function substitutePlayer(posId) {
+        const onIds = Object.values(live.pitchPositions);
+        const bench = db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id));
+        let html = `<div class="action-btn" onclick="removePlayer('${posId}')" style="color:var(--secondary); background:#fdf0f0;">⬇️ ベンチへ下げる (ポジションを空ける)</div>`;
+        html += bench.map(p => `<div class="action-btn" onclick="swapPlayer('${posId}', '${p.id}')">${p.photo_url ? `<img src="${p.photo_url}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : ''} ${p.name} と交代</div>`).join('');
+        showActionModal("交代選手を選択", html);
+    }
+
+    function removePlayer(posId) { delete live.pitchPositions[posId]; closeModals(); updateUI(); syncToCloud(); }
+    function swapPlayer(posId, newPId) { live.pitchPositions[posId] = newPId; closeModals(); updateUI(); syncToCloud(); }
+
+    function showBenchActions(pId) { 
+        const p = db.players.find(x => x.id === pId); 
+        showActionModal(p.name, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエロー</div>`); 
+    }
 
     function recordGoal(pId) { const p = db.players.find(x => x.id === pId); live.score.own++; live.structuredEvents.push({ time: formatTime(live.timerLeft), type: 'goal', player_id: p.id, player_name: p.name }); addEventLog(`GOAL: ${p.name}`); closeModals(); updateUI(); syncToCloud(); }
     function recordCard(pId, color) { const p = db.players.find(x => x.id === pId); live.structuredEvents.push({ time: formatTime(live.timerLeft), type: color, player_id: p.id, player_name: p.name }); addEventLog(`${color.toUpperCase()}: ${p.name}`); closeModals(); updateUI(); syncToCloud(); }
@@ -589,8 +617,6 @@
         
         const sortedScorers = Object.values(scorers).sort((a, b) => b.goals - a.goals).slice(0, 3), medals = ['🥇', '🥈', '🥉'];
         document.getElementById('dashTopScorers').innerHTML = sortedScorers.length > 0 ? sortedScorers.map((s, i) => {
-            // アバター画像があればダッシュボードのランキングにも表示
-            const p = db.players.find(x => x.id === s.name); // IDで検索...は今回実装が複雑になるのでシンプルに名前で表示
             return `<li><span>${medals[i]} ${s.name}</span><span style="color:var(--primary);">${s.goals} ゴール</span></li>`;
         }).join('') : '<li style="color:#bdc3c7; text-align:center;">データがありません</li>';
     }
