@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.9.8 - UI/UX 完全刷新版 (フィルタリング・最適化)</title>
+    <title>PitchSide Pro v10.0.0 - プレミアムUI & クラウドストレージ完全対応</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -15,7 +15,6 @@
         }
         *, *::before, *::after { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         html, body { overflow-x: hidden; width: 100%; position: relative; }
-        /* ▼ OS標準の引き伸ばし（バウンス）を完全に無効化 ▼ */
         body { font-family: 'Inter', -apple-system, "Hiragino Sans", sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text-main); user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 15px; transition: transform 0.2s cubic-bezier(0,0,0.2,1); }
@@ -31,13 +30,19 @@
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; letter-spacing: 0.5px; }
         
-        input, select, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; background: #fdfdfd; color: var(--text-main); transition: 0.2s; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; background: #fdfdfd; color: var(--text-main); transition: 0.2s; }
         input:focus, select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(26, 42, 58, 0.05); }
         
         button { background: var(--gradient); color: #fff; border: none; padding: 16px; border-radius: 14px; font-weight: 800; width: 100%; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(26, 42, 58, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px;}
         button:active { transform: scale(0.96); opacity: 0.9; }
         button:disabled { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
         
+        /* 画像アップロード用UI */
+        .photo-upload-wrap { width: 64px; height: 64px; border-radius: 50%; background: #f0f3f7; border: 2px dashed #cbd5e0; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; }
+        .photo-upload-wrap img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; display: none; }
+        .photo-upload-wrap .upload-icon { font-size: 20px; color: #a0aec0; }
+        .photo-upload-wrap:active { opacity: 0.7; }
+
         .report-item { margin-bottom: 12px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
         .report-item summary { padding: 18px; cursor: pointer; list-style: none; outline: none; display: flex; align-items: center; gap: 15px; }
         .report-score { font-size: 26px; font-weight: 800; color: var(--primary); margin: 6px 0; }
@@ -58,40 +63,41 @@
         .pitch::after { content: ''; position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; transform: translate(-50%, -50%); }
         
         .player-icon { position: absolute; width: 56px; text-align: center; transform: translate(-50%, -50%); z-index: 10; cursor: pointer; touch-action: none; }
-        .icon-jersey { width: 40px; height: 40px; background: #fff; border: 2px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; font-weight: 800; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.15); overflow: hidden; }
+        .icon-jersey { width: 42px; height: 42px; background: #fff; border: 2px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 14px; font-weight: 800; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.15); overflow: hidden; }
+        .icon-jersey img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .jersey-num-overlay { position: relative; z-index: 2; color: var(--primary); text-shadow: 0 0 4px #fff, 0 0 4px #fff; }
         .icon-name { font-size: 9px; font-weight: 800; color: #fff; background: rgba(26, 42, 58, 0.9); padding: 2px 6px; border-radius: 4px; margin-top: 4px; white-space: nowrap; }
 
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 15px; }
-        .player-chip { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 700; cursor: pointer; position: relative; touch-action: none; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .player-chip { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 700; cursor: pointer; position: relative; touch-action: none; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .player-chip.on-pitch { border-color: var(--accent); border-width: 2px; }
         .player-chip.bench { color: var(--text-sub); background: #f8f9fa; }
-        .chip-num { position: absolute; top: -5px; left: -5px; background: var(--primary); color: #fff; font-size: 8px; padding: 1px 5px; border-radius: 4px; font-weight: 800; }
+        .chip-num { position: absolute; top: -5px; left: -5px; background: var(--primary); color: #fff; font-size: 8px; padding: 1px 5px; border-radius: 4px; font-weight: 800; z-index: 2; }
+        .chip-photo { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
 
-        /* ダッシュボード用スタイル */
         .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .dash-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 15px; text-align: center; box-shadow: var(--shadow); }
         .dash-val { font-size: 28px; font-weight: 900; color: var(--primary); margin: 5px 0; }
         .dash-label { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;}
         .dash-list { list-style: none; padding: 0; margin: 0; }
-        .dash-list li { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 800; }
+        .dash-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 800; }
         .dash-list li:last-child { border-bottom: none; }
         
         .accordion { margin-bottom: 12px; border-radius: 16px; overflow: hidden; background: #fff; border: 1px solid var(--border); box-shadow: var(--shadow); }
-        .accordion-header { padding: 18px 20px; cursor: pointer; background: #fff; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .accordion-header { padding: 15px 20px; cursor: pointer; background: #fff; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .accordion-header:active { background: #f8f9fa; }
+        .accordion-header .team-info { display: flex; align-items: center; gap: 10px; }
+        .accordion-header .team-logo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #eee; }
         .accordion-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--primary); }
         .accordion-content { display: none; padding: 15px; background: #fafbfc; border-top: 1px solid var(--border); }
         .accordion.open .accordion-content { display: block; }
-        .accordion-header::after { content: '▼'; font-size: 10px; color: #cbd5e0; transition: 0.3s; }
-        .accordion.open .accordion-header::after { transform: rotate(180deg); }
-
+        
         .player-tile-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .player-tile { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 10px; position: relative; transition: 0.2s; }
+        .player-tile { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 10px; position: relative; transition: 0.2s; }
         .player-tile:active { transform: translateY(-2px); border-color: var(--accent); }
-        .tile-num { width: 28px; height: 28px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: var(--text-sub); }
+        .tile-photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: var(--text-sub); }
         .tile-name { font-size: 13px; font-weight: 800; color: var(--text-main); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .tile-edit { color: #cbd5e0; font-size: 14px; cursor: pointer; padding: 4px; }
-        .tile-edit:hover { color: var(--primary); }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; padding: 12px 10px 25px; border-top: 1px solid var(--border); box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; font-size: 11px; color: #a0aec0; font-weight: 800; cursor: pointer; transition: 0.3s; }
@@ -113,7 +119,7 @@
             .card { border: 2px solid #333; box-shadow: none; break-inside: avoid; margin-bottom: 20px; }
             .dash-card { border: 1px solid #ccc; box-shadow: none; }
             h2 { color: #000 !important; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            #dashFilters { display: none !important; } /* 印刷時はフィルターUIを隠す */
+            #dashFilters { display: none !important; }
             @page { size: A4 portrait; margin: 15mm; }
         }
     </style>
@@ -124,7 +130,7 @@
 
 <div class="container" id="appContainer">
     <div id="loginSection" style="padding:100px 20px; text-align:center;">
-        <h1 style="font-size:24px; font-weight:900; letter-spacing:-1px; color:var(--primary);">PitchSide Pro <span style="color:var(--accent);">v9.9.8</span></h1>
+        <h1 style="font-size:24px; font-weight:900; letter-spacing:-1px; color:var(--primary);">PitchSide Pro <span style="color:var(--accent);">v10.0</span></h1>
         <div class="form-group" style="margin:40px 0;"><input type="password" id="passcode" placeholder="Passcode" style="text-align:center; font-size:20px; letter-spacing: 4px;"></div>
         <button id="loginBtn" onclick="checkPass()">ENTER APP</button>
     </div>
@@ -134,15 +140,12 @@
             <div id="setupScreen">
                 <div class="card">
                     <h2 style="font-size:18px; font-weight:900; margin:0 0 20px 0;">試合設定</h2>
-                    <div class="form-group">
-                        <label class="form-label">自チームを選択</label>
-                        <select id="setupMyTeam"><option value="">チームを選択</option></select>
-                    </div>
+                    <div class="form-group"><label class="form-label">自チーム</label><select id="setupMyTeam"><option value="">選択してください</option></select></div>
                     <div class="form-group"><label class="form-label">対戦相手</label><input type="text" id="oppName" placeholder="対戦チーム名を入力"></div>
                     <div class="form-group"><label class="form-label">会場</label><input type="text" id="venueName" placeholder="会場名を入力"></div>
                     <div style="display:flex; gap:15px;">
-                        <div class="form-group" style="flex:1;"><label class="form-label">試合時間</label><select id="halfMinutes"><option value="15" selected>15分</option><option value="20">20分</option></select></div>
-                        <div class="form-group" style="flex:1;"><label class="form-label">フォーメーション</label><select id="formationSelect"><option value="3-3-1">3-3-1</option><option value="2-4-1">2-4-1</option></select></div>
+                        <div class="form-group" style="flex:1;"><label class="form-label">時間</label><select id="halfMinutes"><option value="15" selected>15分</option><option value="20">20分</option></select></div>
+                        <div class="form-group" style="flex:1;"><label class="form-label">布陣</label><select id="formationSelect"><option value="3-3-1">3-3-1</option><option value="2-4-1">2-4-1</option></select></div>
                     </div>
                     <button onclick="startMatch()" style="margin-top:15px; height:60px; font-size:18px;">キックオフ</button>
                 </div>
@@ -180,7 +183,7 @@
 
         <div id="tabDashboard" class="tab-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h2 style="font-size:18px; font-weight:900; margin:0;">年間成績ダッシュボード</h2>
+                <h2 style="font-size:18px; font-weight:900; margin:0;">ダッシュボード</h2>
                 <button onclick="printDashboard()" style="width:auto; padding:8px 15px; font-size:12px; height:auto; background:#34495e;">🖨️ PDF</button>
             </div>
             
@@ -207,19 +210,38 @@
 
         <div id="tabSettings" class="tab-content">
             <h2 style="font-size:20px; font-weight:900; margin-bottom:20px;">Master Data</h2>
+            
             <div class="card">
-                <div class="form-group"><label class="form-label">チーム名</label><input type="text" id="teamInName" placeholder="例: FC Pitch"></div>
-                <div class="form-group" style="margin-bottom:0;"><label class="form-label">グループ (任意)</label><input type="text" id="categoryInName" placeholder="例: Aチーム, U-12"></div>
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <div class="photo-upload-wrap" onclick="document.getElementById('tLogoIn').click()">
+                        <img id="tLogoPreview">
+                        <span class="upload-icon">📷</span>
+                    </div>
+                    <input type="file" id="tLogoIn" accept="image/*" style="display:none;" onchange="previewFile(this, 'tLogoPreview')">
+                    <div style="flex:1;">
+                        <input type="text" id="teamInName" placeholder="チーム名 (例: FC Pitch)" style="margin-bottom:8px;">
+                        <input type="text" id="categoryInName" placeholder="グループ (任意)">
+                    </div>
+                </div>
                 <button onclick="addMaster('teams_master')" style="margin-top:15px; background:var(--primary);">チームを追加</button>
             </div>
+
             <div class="card">
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <input type="number" id="pInNum" placeholder="No." style="width:70px;">
-                    <input type="text" id="pInName" placeholder="選手名">
+                <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
+                    <div class="photo-upload-wrap" onclick="document.getElementById('pPhotoIn').click()">
+                        <img id="pPhotoPreview">
+                        <span class="upload-icon">📷</span>
+                    </div>
+                    <input type="file" id="pPhotoIn" accept="image/*" style="display:none;" onchange="previewFile(this, 'pPhotoPreview')">
+                    <div style="flex:1; display:flex; gap:8px;">
+                        <input type="number" id="pInNum" placeholder="No." style="width:70px;">
+                        <input type="text" id="pInName" placeholder="選手名">
+                    </div>
                 </div>
                 <select id="pInTeam" style="margin-bottom:15px;"><option value="">所属チームを選択</option></select>
                 <button onclick="addMaster('players_master')">選手を新規登録</button>
             </div>
+            
             <div id="masterAccordionArea"></div>
         </div>
     </div>
@@ -238,13 +260,12 @@
         <div id="editFields"></div>
         <div style="display:flex; gap:10px; margin-top:20px;">
             <button id="deleteBtn" style="flex:1; background:var(--bg); color:var(--secondary); border:1px solid var(--border); box-shadow:none;">🗑️ 削除</button>
-            <button id="saveEditBtn" style="flex:2; background:var(--accent);">保存する</button>
+            <button id="saveEditBtn" style="flex:2; background:var(--accent);">保存</button>
         </div>
-        <div style="margin-top:10px; text-align:center;">
-            <button onclick="closeModals()" style="background:transparent; color:var(--text-sub); box-shadow:none; padding:10px;">キャンセル</button>
-        </div>
+        <div style="margin-top:10px; text-align:center;"><button onclick="closeModals()" style="background:transparent; color:var(--text-sub); box-shadow:none; padding:10px;">キャンセル</button></div>
     </div>
 </div>
+
 <div id="actionModal" class="modal-overlay" onclick="closeModals()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <h3 id="modalTitle" style="text-align:center; color:var(--primary); margin-bottom:20px; font-weight:900;"></h3>
@@ -274,7 +295,6 @@
         }
     });
 
-    // ▼ スワイプリロードの制御（設定・ライブタブの無効化をJSで徹底） ▼
     let startY = 0, pulling = false;
     const appContainer = document.getElementById('appContainer'), ptrIndicator = document.getElementById('ptr-indicator'), ptrSpinner = document.getElementById('ptr-spinner'), ptrText = document.getElementById('ptr-text');
     
@@ -285,23 +305,20 @@
     window.addEventListener('touchmove', (e) => { 
         if (!pulling) return; 
         const currentTab = localStorage.getItem('ps_active_tab') || 'tabLive';
-        if (currentTab !== 'tabHistory' && currentTab !== 'tabDashboard') return; // 履歴と成績のみ許可
-        
+        if (currentTab !== 'tabHistory' && currentTab !== 'tabDashboard') return;
         const diff = e.touches[0].pageY - startY; 
         if (diff > 0 && window.scrollY <= 0) { 
-            if(e.cancelable) e.preventDefault(); // JS側でも引き伸ばしを防ぐ
+            if(e.cancelable) e.preventDefault();
             ptrIndicator.style.display = 'flex'; 
-            const move = Math.pow(diff, 0.8); 
-            appContainer.style.transform = `translateY(${move}px)`; 
+            const move = Math.pow(diff, 0.8); appContainer.style.transform = `translateY(${move}px)`; 
             ptrText.innerText = move > 50 ? "指を離して更新" : "スワイプして更新"; 
         } 
-    }, { passive: false }); // preventDefaultを呼ぶためpassive:false
+    }, { passive: false });
     
     window.addEventListener('touchend', () => { 
         if (!pulling) return; pulling = false; 
         const currentTab = localStorage.getItem('ps_active_tab') || 'tabLive';
         if (currentTab !== 'tabHistory' && currentTab !== 'tabDashboard') return;
-        
         const match = appContainer.style.transform.match(/translateY\((.*)px\)/), move = match ? parseFloat(match[1]) : 0; 
         appContainer.style.transform = ''; 
         if (move > 50) { ptrSpinner.style.display = 'block'; ptrText.innerText = "更新中..."; setTimeout(() => location.reload(), 300); } else { ptrIndicator.style.display = 'none'; } 
@@ -319,17 +336,72 @@
     function showLoading(text) { document.getElementById('full-loading-text').innerText = text; document.getElementById('full-loading').style.display = 'flex'; }
     function hideLoading() { document.getElementById('full-loading').style.display = 'none'; }
 
+    // ▼ 画像プレビューと圧縮エンジン ▼
+    function previewFile(input, imgId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById(imgId);
+                img.src = e.target.result; img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function compressImage(file, maxSize = 200) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image(); img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    if (width > height) { if (width > maxSize) { height *= maxSize / width; width = maxSize; } } 
+                    else { if (height > maxSize) { width *= maxSize / height; height = maxSize; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob(blob => { resolve(new File([blob], file.name, { type: 'image/jpeg' })); }, 'image/jpeg', 0.8);
+                };
+            };
+        });
+    }
+
+    async function uploadToStorage(file, folder) {
+        const compressedFile = await compressImage(file);
+        const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+        const { error } = await supabaseClient.storage.from('pitchside-public').upload(fileName, compressedFile);
+        if (error) { alert("画像の保存に失敗しました。"); return null; }
+        const { data } = supabaseClient.storage.from('pitchside-public').getPublicUrl(fileName);
+        return data.publicUrl;
+    }
+
+    // ▼ マスター登録（画像URL保存対応） ▼
     async function addMaster(table) {
         if(table === 'teams_master') {
             const team = document.getElementById('teamInName').value.trim(), category = document.getElementById('categoryInName').value.trim();
-            if(!team) return; await supabaseClient.from('teams_master').insert([{ team, category }]); 
+            if(!team) return; 
+            showLoading("登録中...");
+            let logo_url = null;
+            const fileInput = document.getElementById('tLogoIn');
+            if (fileInput.files.length > 0) logo_url = await uploadToStorage(fileInput.files[0], 'logos');
+            
+            await supabaseClient.from('teams_master').insert([{ team, category, logo_url }]); 
             document.getElementById('teamInName').value = ''; document.getElementById('categoryInName').value = '';
+            document.getElementById('tLogoPreview').style.display = 'none'; fileInput.value = '';
         } else {
             const num = document.getElementById('pInNum').value, name = document.getElementById('pInName').value.trim(), teamId = document.getElementById('pInTeam').value;
-            if(!name || !teamId) return; await supabaseClient.from('players_master').insert([{ num, name, team: teamId }]); 
+            if(!name || !teamId) return; 
+            showLoading("登録中...");
+            let photo_url = null;
+            const fileInput = document.getElementById('pPhotoIn');
+            if (fileInput.files.length > 0) photo_url = await uploadToStorage(fileInput.files[0], 'photos');
+            
+            await supabaseClient.from('players_master').insert([{ num, name, team: teamId, photo_url }]); 
             document.getElementById('pInName').value = ''; document.getElementById('pInNum').value = '';
+            document.getElementById('pPhotoPreview').style.display = 'none'; fileInput.value = '';
         }
-        await loadMasterData();
+        hideLoading(); await loadMasterData();
     }
 
     function refreshSettingsUI() {
@@ -340,17 +412,51 @@
         db.teams.forEach(team => {
             const players = db.players.filter(p => p.team === team.id); 
             const catText = team.category ? `<span style="font-size:11px; color:var(--text-sub); margin-left:8px;">${team.category} (${players.length}名)</span>` : `<span style="font-size:11px; color:var(--text-sub); margin-left:8px;">(${players.length}名)</span>`;
+            const logoImg = team.logo_url ? `<img src="${team.logo_url}" class="team-logo">` : `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:#fff;background:var(--primary);">FC</div>`;
+            
             const acc = document.createElement('div'); acc.className = 'accordion';
-            acc.innerHTML = `<div class="accordion-header" onclick="this.parentElement.classList.toggle('open')"><h3>${team.team} ${catText}</h3><span onclick="event.stopPropagation(); openEditTeam('${team.id}')" style="font-size:12px; color:var(--accent); font-weight:800; padding:10px;">編集</span></div><div class="accordion-content"><div class="player-tile-grid">${players.map(p => `<div class="player-tile"><div class="tile-num">${p.num || '-'}</div><div class="tile-name">${p.name}</div><div class="tile-edit" onclick="openEditPlayer('${p.id}')">✎</div></div>`).join('')}</div></div>`;
+            acc.innerHTML = `
+                <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+                    <div class="team-info">${logoImg}<h3>${team.team} ${catText}</h3></div>
+                    <span onclick="event.stopPropagation(); openEditTeam('${team.id}')" style="font-size:12px; color:var(--accent); font-weight:800; padding:10px;">編集</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="player-tile-grid">
+                        ${players.map(p => {
+                            const pPhoto = p.photo_url ? `<img src="${p.photo_url}" class="tile-photo">` : `<div class="tile-photo">${p.num || '-'}</div>`;
+                            return `<div class="player-tile">${pPhoto}<div class="tile-name">${p.name}</div><div class="tile-edit" onclick="openEditPlayer('${p.id}')">✎</div></div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
             area.appendChild(acc);
         });
     }
 
+    // ▼ 画像アップ対応の編集モーダル ▼
     function openEditPlayer(id) {
         const p = db.players.find(x => x.id === id); 
         document.getElementById('editModalTitle').innerText = "選手情報の編集";
-        document.getElementById('editFields').innerHTML = `<div class="form-group"><label class="form-label">背番号</label><input type="number" id="editPNum" value="${p.num || ''}"></div><div class="form-group" style="margin-top:10px;"><label class="form-label">名前</label><input type="text" id="editPName" value="${p.name}"></div>`;
-        document.getElementById('saveEditBtn').onclick = async () => { await supabaseClient.from('players_master').update({ num: document.getElementById('editPNum').value, name: document.getElementById('editPName').value.trim() }).eq('id', id); closeModals(); await loadMasterData(); };
+        const imgDisplay = p.photo_url ? `src="${p.photo_url}" style="display:block;"` : `style="display:none;"`;
+        
+        document.getElementById('editFields').innerHTML = `
+            <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
+                <div class="photo-upload-wrap" onclick="document.getElementById('editPPhotoIn').click()"><img id="editPPhotoPreview" ${imgDisplay}><span class="upload-icon">📷</span></div>
+                <input type="file" id="editPPhotoIn" accept="image/*" style="display:none;" onchange="previewFile(this, 'editPPhotoPreview')">
+                <div style="flex:1;">
+                    <div class="form-group" style="margin-bottom:8px;"><input type="number" id="editPNum" value="${p.num || ''}" placeholder="背番号"></div>
+                    <div class="form-group" style="margin-bottom:0;"><input type="text" id="editPName" value="${p.name}" placeholder="名前"></div>
+                </div>
+            </div>`;
+            
+        document.getElementById('saveEditBtn').onclick = async () => { 
+            showLoading("保存中...");
+            let updateData = { num: document.getElementById('editPNum').value, name: document.getElementById('editPName').value.trim() };
+            const fileInput = document.getElementById('editPPhotoIn');
+            if (fileInput.files.length > 0) updateData.photo_url = await uploadToStorage(fileInput.files[0], 'photos');
+            
+            await supabaseClient.from('players_master').update(updateData).eq('id', id); 
+            hideLoading(); closeModals(); await loadMasterData(); 
+        };
         document.getElementById('deleteBtn').onclick = async () => { showLoading("削除中..."); await supabaseClient.from('players_master').delete().eq('id', id); hideLoading(); closeModals(); await loadMasterData(); };
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -358,8 +464,27 @@
     function openEditTeam(id) {
         const t = db.teams.find(x => x.id === id); 
         document.getElementById('editModalTitle').innerText = "チーム情報の編集";
-        document.getElementById('editFields').innerHTML = `<div class="form-group"><label class="form-label">チーム名</label><input type="text" id="editTName" value="${t.team}"></div><div class="form-group" style="margin-top:10px;"><label class="form-label">グループ (任意)</label><input type="text" id="editTCat" value="${t.category || ''}"></div>`;
-        document.getElementById('saveEditBtn').onclick = async () => { await supabaseClient.from('teams_master').update({ team: document.getElementById('editTName').value.trim(), category: document.getElementById('editTCat').value.trim() }).eq('id', id); closeModals(); await loadMasterData(); };
+        const imgDisplay = t.logo_url ? `src="${t.logo_url}" style="display:block;"` : `style="display:none;"`;
+
+        document.getElementById('editFields').innerHTML = `
+            <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
+                <div class="photo-upload-wrap" onclick="document.getElementById('editTLogoIn').click()"><img id="editTLogoPreview" ${imgDisplay}><span class="upload-icon">📷</span></div>
+                <input type="file" id="editTLogoIn" accept="image/*" style="display:none;" onchange="previewFile(this, 'editTLogoPreview')">
+                <div style="flex:1;">
+                    <div class="form-group" style="margin-bottom:8px;"><input type="text" id="editTName" value="${t.team}" placeholder="チーム名"></div>
+                    <div class="form-group" style="margin-bottom:0;"><input type="text" id="editTCat" value="${t.category || ''}" placeholder="グループ(任意)"></div>
+                </div>
+            </div>`;
+            
+        document.getElementById('saveEditBtn').onclick = async () => { 
+            showLoading("保存中...");
+            let updateData = { team: document.getElementById('editTName').value.trim(), category: document.getElementById('editTCat').value.trim() };
+            const fileInput = document.getElementById('editTLogoIn');
+            if (fileInput.files.length > 0) updateData.logo_url = await uploadToStorage(fileInput.files[0], 'logos');
+
+            await supabaseClient.from('teams_master').update(updateData).eq('id', id); 
+            hideLoading(); closeModals(); await loadMasterData(); 
+        };
         document.getElementById('deleteBtn').onclick = async () => { showLoading("削除中..."); await supabaseClient.from('players_master').delete().eq('team', id); await supabaseClient.from('teams_master').delete().eq('id', id); hideLoading(); closeModals(); await loadMasterData(); };
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -376,20 +501,29 @@
         }
     }
 
+    // ▼ ピッチとベンチの画像表示対応 ▼
     function updateUI() {
         document.getElementById('timerText').innerText = formatTime(live.timerLeft); document.getElementById('scoreOwn').innerText = live.score.own; document.getElementById('scoreOpp').innerText = live.score.opp;
         const pitch = document.getElementById('livePitchArea'); pitch.innerHTML = '';
         formations[live.formation].forEach(pos => {
             const pId = live.pitchPositions[pos.id], p = db.players.find(x => x.id === pId), slot = document.createElement('div'); slot.className = 'player-icon'; slot.style.top = pos.t; slot.style.left = pos.l;
-            if(!p) slot.innerHTML = `<div class="icon-jersey" style="border-style:dashed; opacity:0.3;" onclick="choosePlayerFor('${pos.id}')">+</div>`;
-            else slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}')">${p.num||''}</div><div class="icon-name">${p.name}</div>`;
+            if(!p) slot.innerHTML = `<div class="icon-jersey" style="border-style:dashed; opacity:0.3; background:none;" onclick="choosePlayerFor('${pos.id}')"><span style="color:#fff;">+</span></div>`;
+            else {
+                const imgTag = p.photo_url ? `<img src="${p.photo_url}">` : '';
+                slot.innerHTML = `<div class="icon-jersey" onclick="showPlayerActions('${p.id}')">${imgTag}<span class="jersey-num-overlay">${p.num||''}</span></div><div class="icon-name">${p.name}</div>`;
+            }
             pitch.appendChild(slot);
         });
         const onIds = Object.values(live.pitchPositions), benchGrid = document.getElementById('benchGrid'); benchGrid.innerHTML = '';
-        db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id)).forEach(p => { const chip = document.createElement('div'); chip.className = 'player-chip bench'; chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${p.name}`; chip.onclick = () => showGoalTypeSelection(p.id); benchGrid.appendChild(chip); });
+        db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id)).forEach(p => { 
+            const chip = document.createElement('div'); chip.className = 'player-chip bench'; 
+            const photoEl = p.photo_url ? `<img src="${p.photo_url}" class="chip-photo">` : `<div class="chip-photo" style="background:#ddd; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555;">${p.num||'-'}</div>`;
+            chip.innerHTML = `<span class="chip-num">${p.num || ''}</span>${photoEl}<span style="font-size:10px;">${p.name}</span>`; 
+            chip.onclick = () => showGoalTypeSelection(p.id); benchGrid.appendChild(chip); 
+        });
     }
 
-    function choosePlayerFor(posId) { const onIds = Object.values(live.pitchPositions), bench = db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id)); showActionModal("出場選択", bench.map(p => `<div class="action-btn" onclick="live.pitchPositions['${posId}'] = '${p.id}'; closeModals(); updateUI(); syncToCloud();">${p.name}</div>`).join('')); }
+    function choosePlayerFor(posId) { const onIds = Object.values(live.pitchPositions), bench = db.players.filter(p => p.team === live.selectedTeamId && !onIds.includes(p.id)); showActionModal("出場選択", bench.map(p => `<div class="action-btn" onclick="live.pitchPositions['${posId}'] = '${p.id}'; closeModals(); updateUI(); syncToCloud();">${p.photo_url ? `<img src="${p.photo_url}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : ''} ${p.name}</div>`).join('')); }
     function showPlayerActions(pId) { const p = db.players.find(x => x.id === pId); showActionModal(p.name, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div><div class="action-btn" onclick="recordCard('${pId}', 'yellow')">🟨 イエロー</div>`); }
     function showGoalTypeSelection(pId) { showActionModal(db.players.find(x => x.id === pId).name, `<div class="action-btn" onclick="recordGoal('${pId}')">⚽ ゴール</div>`); }
 
@@ -401,11 +535,7 @@
 
     async function syncToCloud() { if(!live.currentId) return; await supabaseClient.from('match_reports').update({ my_score: live.score.own, opp_score: live.score.opp, events: live.structuredEvents, memo: document.getElementById('liveMemo').value }).eq('id', live.currentId); }
 
-    // ▼ 年度算出ロジック (4月〜3月) ▼
-    function getFiscalYear(dateString) {
-        const d = new Date(dateString);
-        return (d.getMonth() + 1 < 4) ? d.getFullYear() - 1 : d.getFullYear();
-    }
+    function getFiscalYear(dateString) { const d = new Date(dateString); return (d.getMonth() + 1 < 4) ? d.getFullYear() - 1 : d.getFullYear(); }
 
     async function fetchReports() {
         showLoading("データ同期中...");
@@ -423,44 +553,30 @@
                     </div>
                 </details>`).join(''); 
             
-            // フィルターUIの更新
-            updateDashboardFilters(data);
-            applyDashFilter(); // 自動で計算を実行
+            updateDashboardFilters(data); applyDashFilter();
         }
     }
 
-    // ▼ フィルターの選択肢をデータから動的に生成 ▼
     function updateDashboardFilters(reports) {
-        const teams = new Set();
-        const years = new Set();
-        reports.forEach(r => {
-            teams.add(r.my_team);
-            years.add(getFiscalYear(r.created_at));
-        });
+        const teams = new Set(), years = new Set();
+        reports.forEach(r => { teams.add(r.my_team); years.add(getFiscalYear(r.created_at)); });
 
-        const teamSel = document.getElementById('dashFilterTeam');
-        const currentTeam = teamSel.value;
+        const teamSel = document.getElementById('dashFilterTeam'), currentTeam = teamSel.value;
         teamSel.innerHTML = '<option value="all">全チーム</option>' + Array.from(teams).map(t => `<option value="${t}">${t}</option>`).join('');
         if(Array.from(teams).includes(currentTeam)) teamSel.value = currentTeam;
 
-        const yearSel = document.getElementById('dashFilterYear');
-        const currentYear = yearSel.value;
+        const yearSel = document.getElementById('dashFilterYear'), currentYear = yearSel.value;
         yearSel.innerHTML = '<option value="all">全期間</option>' + Array.from(years).sort((a,b)=>b-a).map(y => `<option value="${y}">${y}年度</option>`).join('');
         if(Array.from(years).map(String).includes(currentYear)) yearSel.value = currentYear;
     }
 
-    // ▼ 選択されたフィルターでダッシュボードを集計・更新 ▼
     function applyDashFilter() {
-        const filterTeam = document.getElementById('dashFilterTeam').value;
-        const filterYear = document.getElementById('dashFilterYear').value;
-
+        const filterTeam = document.getElementById('dashFilterTeam').value, filterYear = document.getElementById('dashFilterYear').value;
         let filtered = globalReports;
         if(filterTeam !== 'all') filtered = filtered.filter(r => r.my_team === filterTeam);
         if(filterYear !== 'all') filtered = filtered.filter(r => getFiscalYear(r.created_at).toString() === filterYear);
 
-        let total = filtered.length, wins = 0, draws = 0, losses = 0, gf = 0, ga = 0, cs = 0; 
-        const scorers = {};
-
+        let total = filtered.length, wins = 0, draws = 0, losses = 0, gf = 0, ga = 0, cs = 0; const scorers = {};
         filtered.forEach(r => {
             gf += r.my_score; ga += r.opp_score;
             if(r.my_score > r.opp_score) wins++; else if(r.my_score < r.opp_score) losses++; else draws++;
@@ -468,15 +584,15 @@
             if(r.events) r.events.forEach(e => { if(e.type === 'goal' && e.player_id) { scorers[e.player_id] = (scorers[e.player_id] || { name: e.player_name, goals: 0 }); scorers[e.player_id].goals++; } });
         });
 
-        document.getElementById('dashTotal').innerText = total; 
-        document.getElementById('dashWinRate').innerText = `${total > 0 ? Math.round((wins / total) * 100) : 0}%`;
-        document.getElementById('dashWDL').innerText = `${wins}勝 ${losses}敗 ${draws}分`; 
-        document.getElementById('dashCS').innerText = cs; 
-        document.getElementById('dashGF').innerText = gf; 
-        document.getElementById('dashGA').innerText = ga;
+        document.getElementById('dashTotal').innerText = total; document.getElementById('dashWinRate').innerText = `${total > 0 ? Math.round((wins / total) * 100) : 0}%`;
+        document.getElementById('dashWDL').innerText = `${wins}勝 ${losses}敗 ${draws}分`; document.getElementById('dashCS').innerText = cs; document.getElementById('dashGF').innerText = gf; document.getElementById('dashGA').innerText = ga;
         
         const sortedScorers = Object.values(scorers).sort((a, b) => b.goals - a.goals).slice(0, 3), medals = ['🥇', '🥈', '🥉'];
-        document.getElementById('dashTopScorers').innerHTML = sortedScorers.length > 0 ? sortedScorers.map((s, i) => `<li><span>${medals[i]} ${s.name}</span><span style="color:var(--primary);">${s.goals} ゴール</span></li>`).join('') : '<li style="color:#bdc3c7; text-align:center;">データがありません</li>';
+        document.getElementById('dashTopScorers').innerHTML = sortedScorers.length > 0 ? sortedScorers.map((s, i) => {
+            // アバター画像があればダッシュボードのランキングにも表示
+            const p = db.players.find(x => x.id === s.name); // IDで検索...は今回実装が複雑になるのでシンプルに名前で表示
+            return `<li><span>${medals[i]} ${s.name}</span><span style="color:var(--primary);">${s.goals} ゴール</span></li>`;
+        }).join('') : '<li style="color:#bdc3c7; text-align:center;">データがありません</li>';
     }
 
     function printDashboard() { showTab('tabDashboard', document.getElementById('navDashboard')); setTimeout(() => window.print(), 300); }
