@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v9.6.0 - クラウド完全同期版 (保存UX最適化)</title>
+    <title>PitchSide Pro v9.6.0 - クラウド完全同期版 (複数画像一括出力対応)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -104,11 +104,10 @@
         .chip-del { background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .del-btn { color: var(--secondary); font-weight: 800; padding: 5px; cursor: pointer; }
 
-        /* ▼ 新規追加: ローディングUIと画像保存用CSS ▼ */
+        /* ローディングUIと画像保存用CSS */
         #full-loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 42, 58, 0.95); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; color: #fff; overflow: hidden; }
         #export-wrapper { position: absolute; top: 0; left: 0; z-index: -1; pointer-events: none; }
         
-        /* プレビュー画像はOSの機能で保存させるため、長押し（コールアウト）を許可する重要CSS */
         .allow-save { -webkit-touch-callout: default !important; user-select: auto !important; pointer-events: auto !important; }
 
         .ps-export-canvas { width: 400px; background: linear-gradient(135deg, #1a2a3a, #2c3e50); color: #fff; padding: 24px; border-radius: 16px; font-family: 'Inter', sans-serif; box-sizing: border-box; }
@@ -263,7 +262,10 @@
                 </select>
             </div>
             
-            <button id="bulkDeleteBtn" onclick="deleteSelectedReports()" style="display:none; background:var(--secondary); margin-bottom:15px; height:46px; font-size:14px;">選択したレポートを削除</button>
+            <div id="bulkActions" style="display:none; gap:10px; margin-bottom:15px;">
+                <button id="bulkExportBtn" onclick="exportSelectedReports()" style="flex:2; background:#00B900; height:46px; font-size:14px; padding:0 5px;">📸 画像生成</button>
+                <button id="bulkDeleteBtn" onclick="deleteSelectedReports()" style="flex:1; background:var(--secondary); height:46px; font-size:14px; padding:0 5px;">削除</button>
+            </div>
             
             <div id="historyList"></div>
         </div>
@@ -357,11 +359,12 @@
 
 <div id="imagePreviewModal" class="modal-overlay" onclick="closeModals()">
     <div class="modal-content" style="background:#1a2a3a; padding:15px; border:none;" onclick="event.stopPropagation()">
-        <div style="text-align:center; font-size:13px; color:#2ecc71; margin-bottom:12px; font-weight:800; letter-spacing:0.5px;">⬇ 画像を長押しして「写真に追加」 ⬇</div>
-        <img id="previewImg" class="allow-save" style="width:100%; border-radius:12px; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+        <div style="text-align:center; font-size:13px; color:#2ecc71; margin-bottom:12px; font-weight:800; letter-spacing:0.5px;">⬇ 長押しで「写真に追加」 ⬇</div>
+        <div id="previewContainer" style="display:flex; flex-direction:column; gap:15px; max-height: 55vh; overflow-y:auto; padding-bottom:10px;">
+            </div>
         <div style="display:flex; gap:10px; margin-top:20px;">
             <button onclick="closeModals()" style="flex:1; background:transparent; color:#bdc3c7; border:1px solid #7f8c8d; box-shadow:none;">閉じる</button>
-            <button onclick="shareNativeCurrent()" style="flex:2; background:#00B900; box-shadow:none; font-size:14px;">💬 LINEで送る</button>
+            <button onclick="shareNativeCurrent()" style="flex:2; background:#00B900; box-shadow:none; font-size:14px;">💬 まとめてLINEへ送る</button>
         </div>
     </div>
 </div>
@@ -541,7 +544,7 @@
             document.getElementById('historyList').innerHTML = data.map(r => `
                 <details class="report-item">
                     <summary>
-                        <input type="checkbox" class="bulk-check" value="${r.id}" onclick="event.stopPropagation(); toggleBulkDeleteBtn();">
+                        <input type="checkbox" class="bulk-check" value="${r.id}" onclick="event.stopPropagation(); toggleBulkActions();">
                         <div style="flex:1;">
                             <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
                             <div class="report-score">${r.score}</div>
@@ -552,7 +555,7 @@
                         <label class="form-label">イベント記録</label><textarea id="editDetail_${r.id}" style="height:120px; font-size:13px; margin-bottom:15px;">${r.detail}</textarea>
                         <label class="form-label">メモ (MVP等)</label><textarea id="editMemo_${r.id}" style="height:80px; font-size:13px; margin-bottom:15px;">${r.memo || ''}</textarea>
                         <div style="margin-bottom:15px;">
-                            <button onclick="shareReportImage('${r.id}')" style="background:#00B900; height:46px; font-size:14px; box-shadow:0 4px 10px rgba(0,185,0,0.2);">📸 この試合の画像をエクスポート</button>
+                            <button onclick="exportReports(['${r.id}'])" style="background:#00B900; height:46px; font-size:14px; box-shadow:0 4px 10px rgba(0,185,0,0.2);">📸 この試合を画像化</button>
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button onclick="saveEditedReport('${r.id}', this)" style="flex:2; height:46px; font-size:14px;">保存</button>
@@ -561,13 +564,61 @@
                     </div>
                 </details>`).join(''); 
         }
-        toggleBulkDeleteBtn();
+        toggleBulkActions();
     }
 
-    // 画像生成とプレビュー表示ロジック
-    async function shareReportImage(reportId) {
+    // ▼ 新規追加: チェックボックス選択時にボタン表示を切り替える ▼
+    function toggleBulkActions() {
+        const checkedCount = document.querySelectorAll('.bulk-check:checked').length;
+        const actionDiv = document.getElementById('bulkActions');
+        if(checkedCount > 0) {
+            actionDiv.style.display = 'flex';
+            document.getElementById('bulkExportBtn').innerText = `📸 ${checkedCount}件を画像化`;
+            document.getElementById('bulkDeleteBtn').innerText = `削除 (${checkedCount})`;
+        } else {
+            actionDiv.style.display = 'none';
+        }
+    }
+
+    // ▼ 新規追加: 複数IDを一括で画像化してプレビューに並べる ▼
+    async function exportSelectedReports() {
+        const checkboxes = document.querySelectorAll('.bulk-check:checked');
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+        if(ids.length === 0) return;
+        await exportReports(ids);
+    }
+
+    // コアとなる画像生成処理（単一・複数共通）
+    async function exportReports(reportIds) {
+        showLoading(`${reportIds.length}件の画像を作成中...`);
+        const previewContainer = document.getElementById('previewContainer');
+        previewContainer.innerHTML = ''; // 過去のプレビューをクリア
+
+        try {
+            for(let id of reportIds) {
+                const imgData = await generateSingleImageBase64(id);
+                if(imgData) {
+                    const imgEl = document.createElement('img');
+                    imgEl.src = imgData;
+                    imgEl.className = 'allow-save';
+                    imgEl.style.width = '100%';
+                    imgEl.style.borderRadius = '12px';
+                    imgEl.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+                    previewContainer.appendChild(imgEl);
+                }
+            }
+            hideLoading();
+            document.getElementById('imagePreviewModal').style.display = 'flex';
+        } catch(err) {
+            console.error(err);
+            hideLoading();
+        }
+    }
+
+    // 1件分のデータをDOMに流し込んでBase64文字列を返す関数
+    async function generateSingleImageBase64(reportId) {
         const report = globalReports.find(r => r.id === reportId);
-        if(!report) return;
+        if(!report) return null;
 
         document.getElementById('ex-info').innerText = `${new Date(report.created_at).toLocaleDateString()} | ${report.venue}`;
         document.getElementById('ex-home').innerText = report.my_team;
@@ -587,51 +638,47 @@
         document.getElementById('ex-events').innerHTML = eventsHtml;
         document.getElementById('ex-memo').innerText = report.memo ? `【監督コメント / 本日のMVP】\n${report.memo}` : 'Enjoy Football!';
 
-        showLoading("レポート画像を作成中...");
+        await new Promise(r => setTimeout(r, 150)); // DOM反映のための微小な待機
 
-        try {
-            await new Promise(r => setTimeout(r, 200)); // DOM反映待ち
-
-            const target = document.getElementById('export-target');
-            const canvas = await html2canvas(target, {
-                scale: 2,
-                backgroundColor: '#1a2a3a',
-                logging: false,
-                useCORS: true
-            });
-            
-            const imageData = canvas.toDataURL('image/png');
-            
-            // ローディングを消して、長押し保存用のモーダルを表示
-            document.getElementById('previewImg').src = imageData;
-            hideLoading();
-            document.getElementById('imagePreviewModal').style.display = 'flex';
-        } catch(err) {
-            console.error(err);
-            hideLoading();
-        }
+        const target = document.getElementById('export-target');
+        const canvas = await html2canvas(target, {
+            scale: 2,
+            backgroundColor: '#1a2a3a',
+            logging: false,
+            useCORS: true
+        });
+        return canvas.toDataURL('image/png');
     }
 
-    // LINE等への明示的なシェアボタン用
+    // プレビューされた複数枚の画像をまとめてLINE等へ送る
     async function shareNativeCurrent() {
-        const imageData = document.getElementById('previewImg').src;
-        if(!imageData) return;
-        const blob = await (await fetch(imageData)).blob();
-        const file = new File([blob], `match_result_${new Date().getTime()}.png`, { type: 'image/png' });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try { await navigator.share({ files: [file] }); } catch (err) { /* キャンセル時は何もしない */ }
-        } else {
-            // alertは使わず、ローディング領域を使ってメッセージ表示
-            showLoading("LINE共有非対応です。長押しで保存してください");
-            setTimeout(hideLoading, 2500);
+        const imgs = document.querySelectorAll('#previewContainer img');
+        if(imgs.length === 0) return;
+        
+        showLoading("準備中...");
+        try {
+            const files = [];
+            for(let i=0; i<imgs.length; i++) {
+                const res = await fetch(imgs[i].src);
+                const blob = await res.blob();
+                files.push(new File([blob], `match_result_${i}.png`, { type: 'image/png' }));
+            }
+            hideLoading();
+            
+            // OSが複数ファイルシェアに対応しているかチェック
+            if (navigator.canShare && navigator.canShare({ files: files })) {
+                await navigator.share({ files: files });
+            } else {
+                showLoading("お使いの端末は複数画像のシェアに対応していません。画像を長押しして保存してください");
+                setTimeout(hideLoading, 3000);
+            }
+        } catch(err) {
+            hideLoading();
+            if (err.name !== 'AbortError') {
+                showLoading("共有がキャンセルされたか、端末の制限により失敗しました");
+                setTimeout(hideLoading, 2000);
+            }
         }
-    }
-
-    function toggleBulkDeleteBtn() {
-        const checkedCount = document.querySelectorAll('.bulk-check:checked').length;
-        document.getElementById('bulkDeleteBtn').style.display = checkedCount > 0 ? 'block' : 'none';
-        document.getElementById('bulkDeleteBtn').innerText = `${checkedCount}件のレポートを削除`;
     }
 
     async function deleteSelectedReports() {
@@ -660,7 +707,6 @@
 
     function updateHistoryCategoryFilter() { const team = document.getElementById('historyFilterMyTeam').value, filterC = document.getElementById('historyFilterCategory'); if (team === 'all') filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>'; else { const cats = db.teams.filter(t => t.team === team).map(t => t.category); filterC.innerHTML = '<option value="all">すべてのカテゴリ</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join(''); } fetchReports(); }
     
-    // ダイアログを出さずローディングを挟んで終了
     async function endPeriod() { 
         showLoading("試合データを保存中...");
         await syncToCloud(); 
