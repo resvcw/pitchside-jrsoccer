@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v10.3.0 - バグ修正・機能改善版</title>
+    <title>PitchSide Pro v10.4.0 - 完全版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #1a2a3a; /* Deep Navy */
@@ -111,6 +112,9 @@
         .dash-label { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;}
         .dash-list { list-style: none; padding: 0; margin: 0; }
 
+        .export-btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .export-btn-group button { padding: 10px; font-size: 12px; height: auto; }
+
         @media print {
            h1, h2, h3 { color: #000 !important; }
            h2 { color: #000 !important; border-bottom: 2px solid #000; padding-bottom: 10px; }
@@ -127,7 +131,7 @@
         <div style="width:70px; height:70px; background:var(--gradient); border-radius:18px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 20px rgba(0,0,0,0.1);">
             <div style="font-size:32px; font-weight:800; color:#fff;">P</div>
         </div>
-        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">Cloud v10.3</span></h1>
+        <h1 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:40px;">PitchSide Pro <span style="font-size:12px; opacity:0.6;">Cloud v10.4</span></h1>
         <div class="form-group">
             <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:4px; padding:18px;">
         </div>
@@ -370,12 +374,43 @@
     </div>
 </div>
 
+<div id="editPlayerModal" class="modal-overlay" onclick="closeEditModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 style="text-align:center; color:var(--primary); margin-bottom:20px; font-weight:800;">選手情報編集</h3>
+        <div class="form-group">
+            <label class="form-label">背番号</label>
+            <input type="number" id="editPNum" placeholder="No.">
+        </div>
+        <div class="form-group">
+            <label class="form-label">選手名</label>
+            <input type="text" id="editPName" placeholder="選手名">
+        </div>
+        <div class="form-group">
+            <label class="form-label">チーム</label>
+            <select id="editPTeam" onchange="updateCategorySelect('editPTeam', 'editPCategory')">
+                <option value="">選択</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">カテゴリ</label>
+            <select id="editPCategory">
+                <option value="">選択</option>
+            </select>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="savePlayerEdit()" style="flex:1;">保存</button>
+            <button onclick="closeEditModal()" style="flex:1; background:#f8f9fa; color:var(--primary); border:1px solid var(--border); box-shadow:none;">キャンセル</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const SUPABASE_URL = 'https://gdzdyykladyccrcvdtbh.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_TWz1alSKy36qDAGtmZ3DFg_7N7sdmBz';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let db = { teams: [], players: [], opps: [], venues: [], tournaments: [] };
+    let editingPlayerId = null;
 
     let live = { 
         currentId: null, timerInterval: null, timerLeft: 0, atSeconds: 0, maxAtSeconds: 0, isAT: false,
@@ -547,6 +582,11 @@
                     <div style="padding:20px; background:#f8f9fa; border-top:1px solid var(--border);">
                         <label class="form-label">イベント記録</label><textarea id="editDetail_${r.id}" style="height:120px; font-size:13px; margin-bottom:15px;">${r.detail}</textarea>
                         <label class="form-label">メモ</label><textarea id="editMemo_${r.id}" style="height:80px; font-size:13px; margin-bottom:15px;">${r.memo || ''}</textarea>
+                        <div class="export-btn-group">
+                            <button onclick="exportReportText('${r.id}')" style="font-size:11px;">📄 テキスト</button>
+                            <button onclick="exportReportPDF('${r.id}')" style="font-size:11px;">📕 PDF</button>
+                            <button onclick="exportReportImage('${r.id}')" style="font-size:11px;">🖼️ 画像</button>
+                        </div>
                         <div style="display:flex; gap:10px;">
                             <button onclick="saveEditedReport('${r.id}')" style="flex:2; height:46px; font-size:14px;">保存</button>
                             <button onclick="deleteReport('${r.id}')" style="flex:1; height:46px; font-size:14px; background:var(--secondary);">削除</button>
@@ -557,6 +597,59 @@
             updateDashboard(data);
         }
         toggleBulkDeleteBtn();
+    }
+
+    function exportReportText(reportId) {
+        const report = db.reports?.find(r => r.id === reportId);
+        const detail = document.getElementById(`editDetail_${reportId}`).value;
+        const memo = document.getElementById(`editMemo_${reportId}`).value;
+        const text = `試合レポート\n\n${detail}\n\nメモ:\n${memo}`;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `report_${reportId}.txt`;
+        a.click();
+    }
+
+    function exportReportPDF(reportId) {
+        const detail = document.getElementById(`editDetail_${reportId}`).value;
+        const memo = document.getElementById(`editMemo_${reportId}`).value;
+        const element = document.createElement('div');
+        element.innerHTML = `<h2>試合レポート</h2><p>${detail}</p><h3>メモ</h3><p>${memo}</p>`;
+        const opt = { margin: 10, filename: `report_${reportId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    function exportReportImage(reportId) {
+        const detail = document.getElementById(`editDetail_${reportId}`).value;
+        const memo = document.getElementById(`editMemo_${reportId}`).value;
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText('試合レポート', 20, 40);
+        ctx.font = '14px Arial';
+        let y = 80;
+        const lines = detail.split('\n');
+        lines.forEach(line => { ctx.fillText(line, 20, y); y += 20; });
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('メモ:', 20, y + 20);
+        ctx.font = '14px Arial';
+        y += 50;
+        const memoLines = memo.split('\n');
+        memoLines.forEach(line => { ctx.fillText(line, 20, y); y += 20; });
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `report_${reportId}.png`;
+            a.click();
+        });
     }
 
     function updateDashboard(data) {
@@ -681,6 +774,43 @@
         updateQuickLists(); 
     }
 
+    function showEditPlayerModal(playerId) {
+        const p = db.players.find(x => x.id === playerId);
+        if (!p) return;
+        editingPlayerId = playerId;
+        document.getElementById('editPNum').value = p.num || '';
+        document.getElementById('editPName').value = p.name || '';
+        document.getElementById('editPTeam').value = p.team || '';
+        updateCategorySelect('editPTeam', 'editPCategory');
+        document.getElementById('editPCategory').value = p.category || '';
+        document.getElementById('editPlayerModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editPlayerModal').style.display = 'none';
+        editingPlayerId = null;
+    }
+
+    async function savePlayerEdit() {
+        if (!editingPlayerId) return;
+        const num = document.getElementById('editPNum').value;
+        const name = document.getElementById('editPName').value.trim();
+        const team = document.getElementById('editPTeam').value;
+        const category = document.getElementById('editPCategory').value;
+        
+        if (!name) { alert("名前を入力してください"); return; }
+        
+        const { error } = await supabaseClient.from('players_master').update({ num, name, team, category }).eq('id', editingPlayerId);
+        if (!error) {
+            await loadMasterData();
+            refreshSettingsUI();
+            closeEditModal();
+            alert("更新しました");
+        } else {
+            alert("エラーが発生しました");
+        }
+    }
+
     async function addMaster(tableType) {
         if(tableType === 'teams_master') { 
             const team = document.getElementById('teamInName').value.trim(), cat = document.getElementById('categoryInName').value.trim(); 
@@ -732,7 +862,7 @@
     function refreshSettingsUI() {
         document.getElementById('teamMasterList').innerHTML = db.teams.map((t) => `<div class="chip-del">${t.team} - ${t.category} <span class="del-btn" onclick="deleteMaster('teams_master', '${t.id}')">×</span></div>`).join('');
         const grouped = {}; db.players.forEach(p => { const k = `${p.team || '未設定'} - ${p.category || '未設定'}`; if (!grouped[k]) grouped[k] = []; grouped[k].push(p); });
-        let html = ''; for (const [k, players] of Object.entries(grouped)) { html += `<div class="category-header">${k}</div>`; players.forEach(p => { html += `<div class="chip-del"><div style="display:flex;align-items:center;gap:10px;">${p.photo ? `<img src="${p.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : `<div style="width:24px;height:24px;border-radius:50%;background:#eee;"></div>`}<span>${p.num?p.num+' ':''}${p.name}</span></div><div><span class="del-btn" onclick="deleteMaster('players_master', '${p.id}')">×</span></div></div>`; }); }
+        let html = ''; for (const [k, players] of Object.entries(grouped)) { html += `<div class="category-header">${k}</div>`; players.forEach(p => { html += `<div class="chip-del"><div style="display:flex;align-items:center;gap:10px;">${p.photo ? `<img src="${p.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : `<div style="width:24px;height:24px;border-radius:50%;background:#eee;"></div>`}<span>${p.num?p.num+' ':''}${p.name}</span></div><div style="display:flex;gap:5px;"><span class="edit-btn" onclick="showEditPlayerModal('${p.id}')">✏️</span><span class="del-btn" onclick="deleteMaster('players_master', '${p.id}')">×</span></div></div>`; }); }
         document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center;font-size:12px;color:#bdc3c7;">登録なし</p>';
         document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t) => `<div class="chip-del">${t.name} <span class="del-btn" onclick="deleteMaster('tournaments_master', '${t.id}')">×</span></div>`).join('');
         document.getElementById('oppMasterList').innerHTML = db.opps.map((o) => `<div class="chip-del">${o.name} <span class="del-btn" onclick="deleteMaster('opponents_master', '${o.id}')">×</span></div>`).join('');
