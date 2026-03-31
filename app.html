@@ -100,8 +100,27 @@
         .photo-clear-btn { position: absolute; top: -4px; right: -4px; background: var(--secondary); color: #fff; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800; display: none; align-items: center; justify-content: center; z-index: 10; border: 2px solid #fff; cursor: pointer;}
         .photo-label { font-size: 10px; font-weight: 800; color: var(--text-sub); text-align: center; }
 
-        .category-header { font-size: 11px; font-weight: 800; color: var(--primary); background: #f0f4f8; padding: 6px 12px; border-radius: 6px; margin: 15px 0 8px 0; border-left: 4px solid var(--primary); }
-        .chip-del { background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .category-header { font-size: 11px; font-weight: 800; color: var(--primary); background: #f0f4f8; padding: 8px 12px; border-radius: 8px; margin: 15px 0 10px 0; border-left: 4px solid var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .team-chip { background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; transition: 0.2s; }
+        .team-chip:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(26, 42, 58, 0.1); }
+        .team-chip-content { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .team-chip-name { font-weight: 800; color: var(--primary); }
+        .team-chip-actions { display: flex; gap: 8px; }
+        .opp-chip { background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; transition: 0.2s; }
+        .opp-chip:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(26, 42, 58, 0.1); }
+        .opp-chip-content { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .opp-chip-name { font-weight: 800; color: var(--primary); }
+        .opp-chip-actions { display: flex; gap: 8px; }
+        .chip-del { background: #fff; border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; transition: 0.2s; cursor: pointer; }
+        .chip-del:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(26, 42, 58, 0.1); }
+        .chip-del-content { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .chip-del-photo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #f0f4f8; }
+        .chip-del-info { display: flex; flex-direction: column; gap: 3px; }
+        .chip-del-name { font-weight: 800; color: var(--primary); font-size: 13px; }
+        .chip-del-meta { font-size: 11px; color: var(--text-sub); }
+        .chip-del-actions { display: flex; gap: 6px; }
+        .chip-action-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #f8f9fa; color: var(--primary); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 13px; }
+        .chip-action-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
         .del-btn { color: var(--secondary); font-weight: 800; padding: 5px; cursor: pointer; }
         .edit-btn { color: var(--primary); font-weight: 800; padding: 5px; cursor: pointer; margin-right: 5px; }
 
@@ -286,21 +305,29 @@
         </div>
 
         <div id="tabSettings" class="tab-content">
-            <div class="card">
-                <h2 style="font-size:18px; font-weight:800; margin:0 0 20px 0; color:var(--primary);">設定</h2>
-                
-                <div class="form-group">
-                    <label class="form-label">チーム・カテゴリ登録</label>
-                    <div style="display:flex; gap:8px;">
+            <div style="padding:0;">
+                <div style="background:var(--gradient); color:#fff; padding:30px 20px; border-radius:20px; margin-bottom:25px; text-align:center;">
+                    <h1 style="font-size:24px; font-weight:900; margin:0 0 8px 0;">マイページ</h1>
+                    <p style="font-size:13px; opacity:0.9; margin:0;">チーム・選手情報を管理</p>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">📋 登録チーム</h3>
+                    <div id="teamMasterList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    <div style="display:flex; gap:8px; margin-top:15px;">
                         <input type="text" id="teamInName" placeholder="チーム名" style="flex:1;">
                         <input type="text" id="categoryInName" placeholder="カテゴリ" style="flex:1;">
-                        <button onclick="addMaster('teams_master')" style="width:60px; height:46px; padding:0;">追加</button>
+                        <button onclick="addMaster('teams_master')" style="width:auto; padding:12px 20px; height:46px; font-size:12px;">追加</button>
                     </div>
                 </div>
-                <div id="teamMasterList" style="margin-bottom:25px;"></div>
 
-                <div class="form-group">
-                    <label class="form-label">選手登録</label>
+                <div class="card">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">⚽ 登録選手</h3>
+                    <div id="pMasterListGrouped" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">➕ 選手を追加</h3>
                     <div class="player-reg-grid">
                         <div class="photo-input-section">
                             <div class="photo-input-wrap">
@@ -340,19 +367,23 @@
                         </div>
                     </div>
                 </div>
-                
-                <div id="pMasterListGrouped" style="margin-top:15px;"></div>
 
-                <div class="form-group" style="margin-top:30px;">
-                    <label class="form-label">大会名リスト</label>
-                    <div style="display:flex; gap:8px;"><input type="text" id="tournamentInName" placeholder="大会名を入力"><button onclick="addMaster('tournaments_master')" style="width:60px; height:46px; padding:0;">追加</button></div>
-                    <div id="tournamentMasterList" style="margin-top:10px;"></div>
+                <div class="card">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">🏆 大会名</h3>
+                    <div id="tournamentMasterList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    <div style="display:flex; gap:8px; margin-top:15px;">
+                        <input type="text" id="tournamentInName" placeholder="大会名を入力" style="flex:1;">
+                        <button onclick="addMaster('tournaments_master')" style="width:auto; padding:12px 20px; height:46px; font-size:12px;">追加</button>
+                    </div>
                 </div>
 
-                <div class="form-group" style="margin-top:20px;">
-                    <label class="form-label">対戦相手リスト</label>
-                    <div style="display:flex; gap:8px;"><input type="text" id="oppInName" placeholder="対戦相手名を入力"><button onclick="addMaster('opponents_master')" style="width:60px; height:46px; padding:0;">追加</button></div>
-                    <div id="oppMasterList" style="margin-top:10px;"></div>
+                <div class="card">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--text-sub); margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px;">🎯 対戦相手</h3>
+                    <div id="oppMasterList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    <div style="display:flex; gap:8px; margin-top:15px;">
+                        <input type="text" id="oppInName" placeholder="対戦相手名を入力" style="flex:1;">
+                        <button onclick="addMaster('opponents_master')" style="width:auto; padding:12px 20px; height:46px; font-size:12px;">追加</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -894,19 +925,19 @@
     function updateSetupCategoryFilter() { updateCategorySelect('setupMyTeam', 'setupCategory'); updateUI(); }
     
     function refreshSettingsUI() {
-        document.getElementById('teamMasterList').innerHTML = db.teams.map((t) => `<div class="chip-del">${t.team} - ${t.category} <span class="del-btn" onclick="deleteMaster('teams_master', '${t.id}')">×</span></div>`).join('');
+        document.getElementById('teamMasterList').innerHTML = db.teams.map((t) => `<div class="team-chip"><div class="team-chip-content"><div class="team-chip-name">${t.team}</div><div style="font-size:11px;color:var(--text-sub);">${t.category}</div></div><div class="team-chip-actions"><button class="chip-action-btn" onclick="deleteMaster('teams_master', '${t.id}')">🗑️</button></div></div>`).join('');
         const grouped = {}; db.players.forEach(p => { const k = `${p.team || '未設定'} - ${p.category || '未設定'}`; if (!grouped[k]) grouped[k] = []; grouped[k].push(p); });
-        let html = ''; for (const [k, players] of Object.entries(grouped)) { html += `<div class="category-header">${k}</div>`; players.forEach(p => { html += `<div class="chip-del"><div style="display:flex;align-items:center;gap:10px;">${p.photo ? `<img src="${p.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">` : `<div style="width:24px;height:24px;border-radius:50%;background:#eee;"></div>`}<span>${p.num?p.num+' ':''}${p.name}</span></div><div style="display:flex;gap:5px;"><span class="edit-btn" onclick="showEditPlayerModal('${p.id}')">✏️</span><span class="del-btn" onclick="deleteMaster('players_master', '${p.id}')">×</span></div></div>`; }); }
-        document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center;font-size:12px;color:#bdc3c7;">登録なし</p>';
-        document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t) => `<div class="chip-del">${t.name} <span class="del-btn" onclick="deleteMaster('tournaments_master', '${t.id}')">×</span></div>`).join('');
-        document.getElementById('oppMasterList').innerHTML = db.opps.map((o) => `<div class="chip-del">${o.name} <span class="del-btn" onclick="deleteMaster('opponents_master', '${o.id}')">×</span></div>`).join('');
-        const pT = document.getElementById('pInTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; pT.innerHTML = '<option value="">選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
+        let html = ''; for (const [k, players] of Object.entries(grouped)) { html += `<div class="category-header">${k}</div>`; players.forEach(p => { html += `<div class="chip-del"><div class="chip-del-content">${p.photo ? `<img src="${p.photo}" class="chip-del-photo">` : `<div class="chip-del-photo"></div>`}<div class="chip-del-info"><div class="chip-del-name">#${p.num || '-'} ${p.name}</div><div class="chip-del-meta">${p.team} ${p.category}</div></div></div><div class="chip-del-actions"><button class="chip-action-btn" onclick="showEditPlayerModal('${p.id}')">✏️</button><button class="chip-action-btn" onclick="deleteMaster('players_master', '${p.id}')">🗑️</button></div></div>`; }); }
+        document.getElementById('pMasterListGrouped').innerHTML = html || '<p style="text-align:center;font-size:12px;color:#bdc3c7;padding:20px;">登録選手がありません</p>';
+        document.getElementById('tournamentMasterList').innerHTML = db.tournaments.map((t) => `<div class="opp-chip"><div class="opp-chip-content"><div class="opp-chip-name">${t.name}</div></div><div class="opp-chip-actions"><button class="chip-action-btn" onclick="deleteMaster('tournaments_master', '${t.id}')">🗑️</button></div></div>`).join('');
+        document.getElementById('oppMasterList').innerHTML = db.opps.map((o) => `<div class="opp-chip"><div class="opp-chip-content"><div class="opp-chip-name">${o.name}</div></div><div class="opp-chip-actions"><button class="chip-action-btn" onclick="deleteMaster('opponents_master', '${o.id}')">🗑️</button></div></div>`).join('');
+        const pT = document.getElementById('pInTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; pT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
     }
     
     function updateQuickLists() {
         document.getElementById('quickOppList').innerHTML = db.opps.map(x => `<span style="display:inline-block;padding:5px 10px;background:#eee;border-radius:6px;font-size:11px;margin:0 5px 5px 0;cursor:pointer;" onclick="document.getElementById('oppName').value='${x.name}';">${x.name}</span>`).join('');
         document.getElementById('tournamentSelect').innerHTML = '<option value="">大会名を選択</option>' + db.tournaments.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
-        const setupT = document.getElementById('setupMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; setupT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join('');
+        const setupT = document.getElementById('setupMyTeam'), uniqueT = [...new Set(db.teams.map(t => t.team))]; setupT.innerHTML = '<option value="">チームを選択</option>' + uniqueT.map(t => `<option value="${t}">${t}</option>`).join(''); const setupC = document.getElementById('setupCategory'); setupC.innerHTML = '<option value="">カテゴリを選択</option>';
     }
     
     function closeModals() { document.getElementById('actionModal').style.display = 'none'; }
