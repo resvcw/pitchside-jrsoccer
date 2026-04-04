@@ -464,7 +464,33 @@ let live={currentId:null,timerInterval:null,timerLeft:0,atSeconds:0,maxAtSeconds
 const formations={"3-3-1":[{id:'gk',t:'90%',l:'50%',label:'GK'},{id:'df1',t:'75%',l:'20%',label:'DFL'},{id:'df2',t:'75%',l:'50%',label:'DFC'},{id:'df3',t:'75%',l:'80%',label:'DFR'},{id:'mf1',t:'45%',l:'20%',label:'MFL'},{id:'mf2',t:'45%',l:'50%',label:'MFC'},{id:'mf3',t:'45%',l:'80%',label:'MFR'},{id:'fw1',t:'20%',l:'50%',label:'FW'}],"2-4-1":[{id:'gk',t:'90%',l:'50%',label:'GK'},{id:'df1',t:'75%',l:'30%',label:'DFL'},{id:'df2',t:'75%',l:'70%',label:'DFR'},{id:'mf1',t:'50%',l:'15%',label:'MFL'},{id:'mf2',t:'50%',l:'40%',label:'MFM1'},{id:'mf3',t:'50%',l:'60%',label:'MFM2'},{id:'mf4',t:'50%',l:'85%',label:'MFR'},{id:'fw1',t:'20%',l:'50%',label:'FW'}],"3-2-2":[{id:'gk',t:'90%',l:'50%',label:'GK'},{id:'df1',t:'75%',l:'20%',label:'DFL'},{id:'df2',t:'75%',l:'50%',label:'DFC'},{id:'df3',t:'75%',l:'80%',label:'DFR'},{id:'mf1',t:'50%',l:'35%',label:'MFL'},{id:'mf2',t:'50%',l:'65%',label:'MFR'},{id:'fw1',t:'20%',l:'35%',label:'FWL'},{id:'fw2',t:'20%',l:'65%',label:'FWR'}]};
 
 window.addEventListener('load',async()=>{if(localStorage.getItem('ps_logged_in')==='true'){await loadMasterData();enterMainUI();const t=localStorage.getItem('ps_active_tab')||'tabHome';showTab(t,document.getElementById('nav'+t.replace('tab','')));}});
-async function loadMasterData(){try{const[t,p,o,tr,v]=await Promise.all([supabaseClient.from('teams_master').select('*').order('team'),supabaseClient.from('players_master').select('*').order('num'),supabaseClient.from('opponents_master').select('*').order('created_at'),supabaseClient.from('tournaments_master').select('*').order('created_at'),supabaseClient.from('venues_master').select('*').order('created_at')]);db.teams=t.data||[];db.players=p.data||[];db.opps=o.data||[];db.tournaments=tr.data||[];db.venues=v.data||[];['teams','players','opps','tournaments','venues'].forEach(k=>localStorage.setItem(`ps_${k}_cache`,JSON.stringify(db[k])));}catch(e){['teams','players','opps','tournaments','venues'].forEach(k=>{const c=localStorage.getItem(`ps_${k}_cache`);db[k]=c?JSON.parse(c):[];});}}
+async function loadMasterData(){
+    try {
+        const results = await Promise.allSettled([
+            supabaseClient.from('teams_master').select('*').order('team'),
+            supabaseClient.from('players_master').select('*').order('num'),
+            supabaseClient.from('opponents_master').select('*').order('created_at'),
+            supabaseClient.from('tournaments_master').select('*').order('created_at'),
+            supabaseClient.from('venues_master').select('*').order('created_at')
+        ]);
+        
+        const keys = ['teams', 'players', 'opps', 'tournaments', 'venues'];
+        const tableNames = ['teams_master', 'players_master', 'opponents_master', 'tournaments_master', 'venues_master'];
+        
+        results.forEach((res, i) => {
+            if (res.status === 'fulfilled' && !res.value.error) {
+                db[keys[i]] = res.value.data || [];
+                localStorage.setItem(`ps_${keys[i]}_cache`, JSON.stringify(db[keys[i]]));
+            } else {
+                console.error(`Error loading ${tableNames[i]}:`, res.value?.error || res.reason);
+                const cached = localStorage.getItem(`ps_${keys[i]}_cache`);
+                db[keys[i]] = cached ? JSON.parse(cached) : [];
+            }
+        });
+    } catch (e) {
+        console.error("Critical error in loadMasterData:", e);
+    }
+}
 function checkPass(){if(document.getElementById('passcode').value==='2026'){localStorage.setItem('ps_logged_in','true');location.reload();}else alert("パスコードが違います");}
 function enterMainUI(){document.getElementById('loginSection').style.display='none';document.getElementById('mainUI').style.display='block';refreshSettingsUI();updateQuickLists();}
 function showTab(tabId,el){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById(tabId).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');localStorage.setItem('ps_active_tab',tabId);if(['tabReports','tabStats','tabHome'].includes(tabId)){const uniqueT=[...new Set(db.teams.map(t=>t.team))];document.getElementById('historyFilterMyTeam').innerHTML='<option value="all">全チーム</option>'+uniqueT.map(t=>`<option value="${t}">${t}</option>`).join('');fetchReports();}}
@@ -521,7 +547,74 @@ function exportStatsPDF(){const el=document.createElement('div');el.style.paddin
 function exportStatsImage(){const canvas=document.createElement('canvas');canvas.width=800;canvas.height=500;const ctx=canvas.getContext('2d');ctx.fillStyle='#1a2a3a';ctx.fillRect(0,0,800,500);ctx.fillStyle='#2ecc71';ctx.font='bold 34px Arial';ctx.fillText('SEASON STATS',30,60);ctx.fillStyle='#fff';ctx.font='bold 18px Arial';[`試合数: ${document.getElementById('dashTotal').textContent}`,document.getElementById('dashWDL').textContent,`勝率: ${document.getElementById('dashWinRate').textContent}`,`得点: ${document.getElementById('dashGF').textContent}  失点: ${document.getElementById('dashGA').textContent}`,`クリーンシート: ${document.getElementById('dashCS').textContent}`].forEach((s,i)=>{ctx.fillText(s,30,120+i*55);});canvas.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='season_stats.png';a.click();});}
 
 // SETTINGS
-async function addMaster(tableType){if(tableType==='teams_master'){const team=document.getElementById('teamInName').value.trim(),cat=document.getElementById('categoryInName').value.trim();if(team&&cat){await supabaseClient.from('teams_master').insert([{team,category:cat}]);document.getElementById('teamInName').value='';document.getElementById('categoryInName').value='';}}else if(tableType==='players_master'){const num=document.getElementById('pInNum').value,name=document.getElementById('pInName').value.trim(),team=document.getElementById('pInTeam').value,cat=document.getElementById('pInCategory').value;if(!name){alert("名前を入力してください");return;}const btn=document.getElementById('addPlayerBtn');btn.disabled=true;btn.textContent="保存中...";let photoUrl=null;if(currentPhotoData){try{const blob=await(await fetch(currentPhotoData)).blob();const fn=`photos/${Date.now()}.jpg`;await supabaseClient.storage.from('pitchside-public').upload(fn,blob);const{data}=supabaseClient.storage.from('pitchside-public').getPublicUrl(fn);photoUrl=data.publicUrl;}catch(e){}}await supabaseClient.from('players_master').insert([{num,name,photo:photoUrl,photo_url:photoUrl,team,category:cat}]);document.getElementById('pInNum').value='';document.getElementById('pInName').value='';clearPhotoSelection();btn.disabled=false;btn.textContent="選手を追加登録";}else if(tableType==='opponents_master'){const name=document.getElementById('oppInName').value.trim();if(name)await supabaseClient.from('opponents_master').insert([{name}]);document.getElementById('oppInName').value='';}else if(tableType==='tournaments_master'){const name=document.getElementById('tournamentInName').value.trim();if(name)await supabaseClient.from('tournaments_master').insert([{name}]);document.getElementById('tournamentInName').value='';}else if(tableType==='venues_master'){const name=document.getElementById('venueInName').value.trim();if(name)await supabaseClient.from('venues_master').insert([{name}]);document.getElementById('venueInName').value='';}await loadMasterData();refreshSettingsUI();}
+async function addMaster(tableType){
+    let result;
+    try {
+        if(tableType==='teams_master'){
+            const team=document.getElementById('teamInName').value.trim(),cat=document.getElementById('categoryInName').value.trim();
+            if(team&&cat){
+                result = await supabaseClient.from('teams_master').insert([{team,category:cat}]);
+                if(!result.error){
+                    document.getElementById('teamInName').value='';
+                    document.getElementById('categoryInName').value='';
+                }
+            }
+        }else if(tableType==='players_master'){
+            const num=document.getElementById('pInNum').value,name=document.getElementById('pInName').value.trim(),team=document.getElementById('pInTeam').value,cat=document.getElementById('pInCategory').value;
+            if(!name){alert("名前を入力してください");return;}
+            const btn=document.getElementById('addPlayerBtn');
+            btn.disabled=true;
+            btn.textContent="保存中...";
+            let photoUrl=null;
+            if(currentPhotoData){
+                try{
+                    const blob=await(await fetch(currentPhotoData)).blob();
+                    const fn=`photos/${Date.now()}.jpg`;
+                    await supabaseClient.storage.from('pitchside-public').upload(fn,blob);
+                    const{data}=supabaseClient.storage.from('pitchside-public').getPublicUrl(fn);
+                    photoUrl=data.publicUrl;
+                }catch(e){console.error("Photo upload error:", e);}
+            }
+            result = await supabaseClient.from('players_master').insert([{num,name,photo:photoUrl,photo_url:photoUrl,team,category:cat}]);
+            if(!result.error){
+                document.getElementById('pInNum').value='';
+                document.getElementById('pInName').value='';
+                clearPhotoSelection();
+            }
+            btn.disabled=false;
+            btn.textContent="選手を追加登録";
+        }else if(tableType==='opponents_master'){
+            const name=document.getElementById('oppInName').value.trim();
+            if(name){
+                result = await supabaseClient.from('opponents_master').insert([{name}]);
+                if(!result.error) document.getElementById('oppInName').value='';
+            }
+        }else if(tableType==='tournaments_master'){
+            const name=document.getElementById('tournamentInName').value.trim();
+            if(name){
+                result = await supabaseClient.from('tournaments_master').insert([{name}]);
+                if(!result.error) document.getElementById('tournamentInName').value='';
+            }
+        }else if(tableType==='venues_master'){
+            const name=document.getElementById('venueInName').value.trim();
+            if(name){
+                result = await supabaseClient.from('venues_master').insert([{name}]);
+                if(!result.error) document.getElementById('venueInName').value='';
+            }
+        }
+        
+        if(result && result.error){
+            console.error(`Error adding to ${tableType}:`, result.error);
+            alert(`登録エラー: ${result.error.message}\nテーブル名や権限を確認してください。`);
+        } else {
+            await loadMasterData();
+            refreshSettingsUI();
+        }
+    } catch (e) {
+        console.error("Exception in addMaster:", e);
+        alert("システムエラーが発生しました。");
+    }
+}
 async function deleteMaster(tableType,id){if(tableType==='teams_master'){const t=db.teams.find(x=>x.id===id);if(t)await supabaseClient.from('players_master').delete().eq('team',t.team).eq('category',t.category);}await supabaseClient.from(tableType).delete().eq('id',id);await loadMasterData();refreshSettingsUI();}
 function showEditPlayerModal(pid){const p=db.players.find(x=>x.id===pid);if(!p)return;editingPlayerId=pid;document.getElementById('editPNum').value=p.num||'';document.getElementById('editPName').value=p.name||'';const eT=document.getElementById('editPTeam');eT.innerHTML='<option value="">選択</option>'+[...new Set(db.teams.map(t=>t.team))].map(t=>`<option value="${t}">${t}</option>`).join('');eT.value=p.team||'';updateCategorySelect('editPTeam','editPCategory');document.getElementById('editPCategory').value=p.category||'';document.getElementById('editPlayerModal').style.display='flex';}
 function closeEditModal(){document.getElementById('editPlayerModal').style.display='none';editingPlayerId=null;}
