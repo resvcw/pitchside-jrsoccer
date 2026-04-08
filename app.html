@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PitchSide Pro v11.7 | MVP Edition</title>
+    <title>PitchSide Pro v11.8 | MVP Edition (BugFix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
-            /* 現場での視認性と高級感を両立した配色 */
-            --primary: #D4AF37;   /* ゴールド（アクセント） */
-            --bg: #000000;        /* ピュアブラック（太陽光下でのコントラスト最大化） */
-            --card-bg: #111111;   /* ダークグレー */
+            --primary: #D4AF37;
+            --bg: #000000;
+            --card-bg: #111111;
             --text-main: #FFFFFF;
             --text-sub: #888888;
             --border: #333333;
@@ -24,7 +23,6 @@
         html, body { overflow-x: hidden; width: 100%; background: var(--bg); color: var(--text-main); }
         body { font-family: 'Inter', -apple-system, sans-serif; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
 
-        /* Typography */
         h1, h2, h3, .timer-display, .score-val, .qs-val { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
 
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; padding: 0 15px; }
@@ -34,11 +32,9 @@
 
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
 
-        /* Login */
         #loginSection { padding: 100px 30px; text-align: center; }
         .login-logo { font-size: 54px; color: var(--primary); font-weight: 700; margin-bottom: 30px; font-family: 'Oswald'; }
 
-        /* Forms */
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
         input, select, textarea { 
@@ -54,20 +50,16 @@
         button:active { opacity: 0.8; }
         button:disabled { background: #333; color: #666; cursor: not-allowed; }
         button.ghost { background: transparent; border: 1px solid var(--border); color: #fff; }
-        button.danger { background: var(--accent-red); color: #fff; }
 
-        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #000; display: flex; padding: 12px 10px 25px; border-top: 1px solid var(--border); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; font-size: 11px; color: var(--text-sub); font-weight: 800; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
 
-        /* Stats Grid */
         .qs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .qs-card { background: var(--card-bg); border: 1px solid var(--border); padding: 14px 4px; text-align: center; }
         .qs-val { font-size: 24px; color: var(--text-main); }
         .qs-label { font-size: 9px; font-weight: 900; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; }
 
-        /* Tactical Pitch */
         .pitch { width: 100%; aspect-ratio: 3/4; background: #081a0e; position: relative; border: 2px solid var(--border); margin-bottom: 15px; overflow: hidden; }
         .pitch::before { content: ''; position: absolute; top: 50%; width: 100%; height: 1px; background: rgba(255,255,255,0.1); }
         .player-icon { position: absolute; width: 56px; text-align: center; transform: translate(-50%,-50%); z-index: 10; cursor: pointer; touch-action: none; }
@@ -79,13 +71,11 @@
         .jersey-num-overlay { position: absolute; bottom: 0; right: 0; background: var(--primary); color: #000; font-size: 9px; padding: 1px 4px; font-weight: 900; z-index: 5; }
         .icon-name { font-size: 9px; font-weight: 800; color: #fff; margin-top: 4px; white-space: nowrap; }
 
-        /* Player Grid (Bench) */
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px,1fr)); gap: 8px; margin-top: 15px; }
         .player-chip { background: #000; border: 1px solid var(--border); padding: 10px 5px; text-align: center; font-size: 11px; font-weight: 700; cursor: pointer; position: relative; }
         .player-chip.on-pitch { border-color: var(--accent-green); }
         .chip-num { position: absolute; top: -5px; left: -5px; background: var(--primary); color: #000; font-size: 9px; padding: 2px 5px; font-weight: 900; }
 
-        /* Modals */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 3000; align-items: flex-end; justify-content: center; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 500px; border-top: 2px solid var(--primary); padding: 25px 20px 40px; max-height: 85vh; overflow-y: auto; }
         .action-btn { background: #000; border: 1px solid var(--border); padding: 15px; margin-bottom: 8px; text-align: center; font-weight: 700; cursor: pointer; font-size: 14px; }
@@ -94,7 +84,6 @@
         .modal-center { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 3100; align-items: center; justify-content: center; padding: 20px; }
         .modal-center-content { background: var(--card-bg); width: 100%; max-width: 400px; padding: 25px; border: 1px solid var(--border); }
 
-        /* Archives / Settings Rows */
         .report-item { background: var(--card-bg); border: 1px solid var(--border); margin-bottom: 12px; }
         .report-item summary { padding: 18px; cursor: pointer; list-style: none; outline: none; display: flex; align-items: center; gap: 15px; }
         .report-score { font-size: 26px; color: var(--primary); font-family: 'Oswald'; margin: 5px 0; }
@@ -106,7 +95,7 @@
 <body>
 
 <div id="loginSection">
-    <div class="login-logo heading">PITCHSIDE PRO</div>
+    <div class="login-logo">PITCHSIDE PRO</div>
     <div class="form-group">
         <input type="password" id="passcode" placeholder="パスコードを入力" style="text-align:center; letter-spacing:6px;" onkeydown="if(event.key==='Enter')checkPass()">
     </div>
@@ -160,7 +149,7 @@
                         <select id="heroCategorySelect" style="flex:1;" onchange="onHeroChange()"><option value="">カテゴリ</option></select>
                     </div>
                 </div>
-                <button onclick="startMatch()">⚽ キックオフ</button>
+                <button id="kickoffBtn" onclick="startMatch()">⚽ キックオフ</button>
             </div>
             
             <p class="form-label">直近の試合結果</p>
@@ -324,7 +313,6 @@ function showTab(tabId,el){
     }
 }
 
-// --- Home / Start Match ---
 function updateHeroCategorySelect(){
     const team=document.getElementById('heroTeamSelect').value;
     const catSel=document.getElementById('heroCategorySelect');
@@ -339,6 +327,9 @@ function onHeroChange(){
     fetchReports();
 }
 
+// ==========================================
+// BUG FIX: startMatch() - Added Try-Catch and Fallback
+// ==========================================
 async function startMatch(){
     const team=document.getElementById('heroTeamSelect').value;
     const cat=document.getElementById('heroCategorySelect').value;
@@ -348,22 +339,42 @@ async function startMatch(){
     
     if(!team || !opp){alert("チームと対戦相手を入力してください"); return;}
 
-    const teamDisp = cat ? `${team} (${cat})` : team;
-    const {data, error} = await supabaseClient.from('matches').insert([{
-        my_team: teamDisp, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始"
-    }]).select();
+    const btn = document.getElementById('kickoffBtn');
+    const originalText = btn.textContent;
+    btn.textContent = "通信中...";
+    btn.disabled = true;
 
-    if(!error && data){
+    const teamDisp = cat ? `${team} (${cat})` : team;
+
+    try {
+        const {data, error} = await supabaseClient.from('matches').insert([{
+            my_team: teamDisp, opponent: opp, venue: venue, score: "0 - 0", detail: "試合開始"
+        }]).select();
+
+        if(error) throw error; 
+
         live.currentId = data[0].id;
-        live.timerLeft = mins * 60;
-        live.score = {own:0, opp:0};
-        live.selectedTeam = team;
-        live.formation = document.getElementById('homeFormation').value;
-        document.getElementById('myTeamDisplay').textContent = teamDisp;
-        document.getElementById('oppDisplay').textContent = opp;
-        document.getElementById('liveOverlay').style.display = 'block';
-        updateUI();
+    } catch (e) {
+        console.error("Supabase Error:", e);
+        alert(`データベースエラーが発生しました: ${e.message}\n※ローカルモード（保存なし）で試合画面を起動します。`);
+        live.currentId = 'local_' + Date.now(); // フォールバックID
     }
+
+    // エラーが起きてもUIは進める（現場での操作を止めない）
+    live.timerLeft = mins * 60;
+    live.score = {own:0, opp:0};
+    live.selectedTeam = team;
+    live.formation = document.getElementById('homeFormation').value;
+    document.getElementById('myTeamDisplay').textContent = teamDisp;
+    document.getElementById('oppDisplay').textContent = opp;
+    document.getElementById('liveOverlay').style.display = 'block';
+    
+    // UIを初期化
+    updateUI();
+
+    // ボタンの状態を元に戻す
+    btn.textContent = originalText;
+    btn.disabled = false;
 }
 
 function updateUI(){
@@ -445,11 +456,15 @@ function modifyOwnScore(v){ live.score.own = Math.max(0, live.score.own + v); up
 function modifyOppScore(v){ live.score.opp = Math.max(0, live.score.opp + v); updateUI(); syncToCloud(); }
 
 async function syncToCloud(){
-    if(!live.currentId) return;
-    await supabaseClient.from('matches').update({
-        score: `${live.score.own} - ${live.score.opp}`,
-        memo: document.getElementById('liveMemo').value
-    }).eq('id', live.currentId);
+    if(!live.currentId || String(live.currentId).startsWith('local_')) return; // ローカルモード時は通信しない
+    try {
+        await supabaseClient.from('matches').update({
+            score: `${live.score.own} - ${live.score.opp}`,
+            memo: document.getElementById('liveMemo').value
+        }).eq('id', live.currentId);
+    } catch(e) {
+        console.error("Sync Error:", e);
+    }
 }
 
 // --- Reports & Dashboard ---
@@ -461,7 +476,6 @@ async function fetchReports(){
     
     const {data} = await query;
     if(data) {
-        // レポート一覧表示
         const list = document.getElementById('historyList');
         if(list){
             list.innerHTML = data.map(r=> `
@@ -480,7 +494,6 @@ async function fetchReports(){
             `).join('');
         }
         
-        // ダッシュボード統計の更新 (ホーム画面)
         if(document.getElementById('hsTotal')){
             document.getElementById('hsTotal').textContent = data.length;
             const wins = data.filter(r=>{const s=r.score.split(' - '); return parseInt(s[0])>parseInt(s[1]);}).length;
@@ -489,7 +502,6 @@ async function fetchReports(){
             document.getElementById('hsRate').textContent = data.length ? Math.round(wins/data.length*100)+'%' : '0%';
         }
         
-        // 直近の試合(ホーム画面)
         const recent = document.getElementById('homeRecentMatches');
         if(recent){
             recent.innerHTML = data.slice(0,3).map(r=> `
@@ -524,7 +536,6 @@ async function addMaster(type){
         const btn=document.getElementById('addPlayerBtn');
         btn.disabled=true; btn.textContent="保存中...";
         
-        // 写真処理を削除したため、即座にインサート
         await supabaseClient.from('players_master').insert([{num, name, team, category:cat}]);
         
         document.getElementById('pInNum').value='';
@@ -550,7 +561,6 @@ function updateCategorySelect(teamId,catId){
 }
 
 function refreshSettingsUI(){
-    // チーム一覧
     document.getElementById('teamMasterList').innerHTML = db.teams.map(t=>`
         <div class="master-row">
             <span style="font-weight:800;">${t.team} <span style="font-size:11px; color:var(--text-sub);">${t.category}</span></span>
@@ -558,13 +568,9 @@ function refreshSettingsUI(){
         </div>
     `).join('');
     
-    // ホームのチーム選択
     document.getElementById('heroTeamSelect').innerHTML = '<option value="">チームを選択</option>' + [...new Set(db.teams.map(t=>t.team))].map(t=>`<option value="${t}">${t}</option>`).join('');
-    
-    // 選手追加のチーム選択
     document.getElementById('pInTeam').innerHTML = '<option value="">チーム</option>' + [...new Set(db.teams.map(t=>t.team))].map(t=>`<option value="${t}">${t}</option>`).join('');
     
-    // 選手一覧
     const grouped={};
     db.players.forEach(p=>{const k=`${p.team||'未設定'} - ${p.category||'未設定'}`; if(!grouped[k])grouped[k]=[]; grouped[k].push(p);});
     let html='';
@@ -582,8 +588,6 @@ function refreshSettingsUI(){
         });
     }
     document.getElementById('pMasterListGrouped').innerHTML=html;
-
-    // 会場
     document.getElementById('homeVenue').innerHTML = '<option value="">会場履歴から選択</option>' + db.venues.map(v=>`<option value="${v.name}">${v.name}</option>`).join('');
 }
 
