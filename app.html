@@ -17,7 +17,7 @@
             --text-main: #1e293b; /* Slate 800 */
             --text-sub: #64748b; /* Slate 500 */
             --border: #e2e8f0; /* Slate 200 */
-            --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03); /* AI特有の深い影を排除 */
+            --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
         }
         *, *::before, *::after { box-sizing: border-box; }
         html, body { overflow-x: hidden; width: 100%; }
@@ -488,7 +488,34 @@ let editingPlayerId=null;
 let live={currentId:null,timerInterval:null,timerLeft:0,atSeconds:0,maxAtSeconds:0,isAT:false,score:{own:0,opp:0},events:[],memo:"",formation:"3-3-1",pitchPositions:{},playerGoals:{},playerCards:{},selectedTeam:"",selectedCategory:"",lastTickTime:null, period:"前半"};
 const formations={"3-3-1":[{id:'gk',t:'90%',l:'50%',label:'GK'},{id:'df1',t:'75%',l:'20%',label:'DFL'},{id:'df2',t:'75%',l:'50%',label:'DFC'},{id:'df3',t:'75%',l:'80%',label:'DFR'},{id:'mf1',t:'45%',l:'20%',label:'MFL'},{id:'mf2',t:'45%',l:'50%',label:'MFC'},{id:'mf3',t:'45%',l:'80%',label:'MFR'},{id:'fw1',t:'20%',l:'50%',label:'FW'}],"2-4-1":[{id:'gk',t:'90%',l:'50%',label:'GK'},{id:'df1',t:'75%',l:'30%',label:'DFL'},{id:'df2',t:'75%',l:'70%',label:'DFR'},{id:'mf1',t:'50%',l:'15%',label:'MFL'},{id:'mf2',t:'50%',l:'40%',label:'MFM1'},{id:'mf3',t:'50%',l:'60%',label:'MFM2'},{id:'mf4',t:'50%',l:'85%',label:'MFR'},{id:'fw1',t:'20%',l:'50%',label:'FW'}],"3-2-2":[{id:'gk',t:'90%',l:'50%',label:'GK'},{id:'df1',t:'75%',l:'20%',label:'DFL'},{id:'df2',t:'75%',l:'50%',label:'DFC'},{id:'df3',t:'75%',l:'80%',label:'DFR'},{id:'mf1',t:'50%',l:'35%',label:'MFL'},{id:'mf2',t:'50%',l:'65%',label:'MFR'},{id:'fw1',t:'20%',l:'35%',label:'FWL'},{id:'fw2',t:'20%',l:'65%',label:'FWR'}]};
 
-window.addEventListener('load',async()=>{if(localStorage.getItem('ps_logged_in')==='true'){await loadMasterData();enterMainUI();const t=localStorage.getItem('ps_active_tab')||'tabHome';showTab(t,document.getElementById('nav'+t.replace('tab','')));}});
+// ▼▼▼ ログイン時のリロード問題を解決した処理 ▼▼▼
+window.addEventListener('load', async () => {
+    if (localStorage.getItem('ps_logged_in') === 'true') {
+        document.getElementById('loginSection').innerHTML = '<div style="padding:100px 20px;text-align:center;font-weight:700;color:var(--text-sub);letter-spacing:1px;">📡 データを同期中...<br><span style="font-size:12px;opacity:0.7;margin-top:10px;display:block;">PitchSide Cloud</span></div>';
+        
+        await loadMasterData();
+        
+        enterMainUI();
+        const t = localStorage.getItem('ps_active_tab') || 'tabHome';
+        showTab(t, document.getElementById('nav' + t.replace('tab', '')));
+    }
+});
+
+async function checkPass() {
+    if (document.getElementById('passcode').value === '2026') {
+        localStorage.setItem('ps_logged_in', 'true');
+        
+        document.getElementById('loginSection').innerHTML = '<div style="padding:100px 20px;text-align:center;font-weight:700;color:var(--text-sub);letter-spacing:1px;">認証成功<br>データを読み込んでいます...</div>';
+        
+        await loadMasterData();
+        enterMainUI();
+        showTab('tabHome', document.getElementById('navHome'));
+    } else {
+        alert("パスコードが違います");
+    }
+}
+// ▲▲▲ ログイン処理ここまで ▲▲▲
+
 async function loadMasterData(){
     try {
         const results = await Promise.allSettled([
@@ -512,7 +539,7 @@ async function loadMasterData(){
         });
     } catch (e) { console.error("Critical error in loadMasterData:", e); }
 }
-function checkPass(){if(document.getElementById('passcode').value==='2026'){localStorage.setItem('ps_logged_in','true');location.reload();}else alert("Invalid Passcode");}
+
 function enterMainUI(){document.getElementById('loginSection').style.display='none';document.getElementById('mainUI').style.display='block';refreshSettingsUI();updateQuickLists();}
 function showTab(tabId,el){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById(tabId).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');localStorage.setItem('ps_active_tab',tabId);if(['tabReports','tabStats','tabHome'].includes(tabId)){const uniqueT=[...new Set(db.teams.map(t=>t.team))];document.getElementById('historyFilterMyTeam').innerHTML='<option value="all">全チーム</option>'+uniqueT.map(t=>`<option value="${t}">${t}</option>`).join('');fetchReports();}}
 
@@ -571,4 +598,149 @@ async function startMatch(){
 async function endPeriod(){if(confirm("試合を終了しますか？")){if(live.timerInterval){clearInterval(live.timerInterval);live.timerInterval=null;}await syncToCloud();document.getElementById('liveOverlay').style.display='none';document.body.style.overflow='';live.currentId=null;document.getElementById('btnTimer').textContent='START';fetchReports();}}
 
 // LIVE UI
-function updateUI(){document.getElementById('timerText').textContent=formatTime(live.timerLeft);const atL=document.getElementById('atLabel'),atV=document.getElementById('atValueDisplay');if(live.isAT){atL.textContent="AT";atL.style.color='var(--secondary)';document.getElementById('timerText').style.color='var(--secondary)';atV.textContent=`+${formatTime(live.atSeconds)}`;}else{atL.textContent=live.maxAtSeconds>0?`AT (+${Math.floor(live.maxAtSeconds/60)}')`:"AT OFF";atL.style.color='var(--text-sub)';document.getElementById('timerText').style.color='var(--primary)';atV.textContent=`+${Math.floor(live.maxAtSeconds/60)}`;}document.getElementById('scoreOwn').textContent=live.score.own;document.getElementById('scoreOpp').textContent=live.score.opp;const pitch=document.getElementById('livePitchArea');pitch.innerHTML='';formations[live.formation].forEach(pos=>{const pId=live.pitchPositions[pos.id],p=db.players.find(x=>x.id===pId),slot=document.createElement('div');slot.className='player-icon';slot.style.top=pos.t;slot.style.left=pos.l;slot.setAttribute('data-pos-id',pos.id);if(!p)slot.innerHTML=`<div class="icon-jersey" style="border-style:dashed;opacity:0.3;" onclick="choosePlayerFor('${pos.id}')">+</div><div class="icon-name">${pos.label}</div>`;else{const g=live.playerGoals[p.id]||0,c=live.playerCards[p.id];slot.innerHTML=`<div class="icon-jersey" onclick="showPlayerActions('${p.id}','${pos.id}')">${p.photo?`<img src="${p.photo}" class="player-photo">`:''}<span class="jersey-num-overlay">${p.num||''}</span></div>${c?`<div style="position:absolute;top:0;right:0;width:10px;height:14px;background:${c==='yellow'?'#facc15':'var(--secondary)'};border-radius:2px;"></div>`:''}<div class="icon-name" onclick="showPlayerActions('${p.id}','${pos.id}')">${p.name}${g>0?` (${g})`:''}</div>`;initDraggable(slot,p.id,pos.id);}pitch.appendChild(slot);});const benchGrid=document.getElementById('benchGrid');benchGrid.innerHTML='';let players=db.players;if(live.selectedTeam){players=players.filter(p=>p.team===live.selectedTeam);if(live.selectedCategory)players=players.filter(p=>p.category===live.selectedCategory);}players.filter(p=>!Object.values(live.pitchPositions).includes(p.id)).forEach(p=>{const chip=document.createElement('div');chip.className='player-chip bench';chip.innerHTML=`<span class="chip-num">${p.num
+function updateUI(){document.getElementById('timerText').textContent=formatTime(live.timerLeft);const atL=document.getElementById('atLabel'),atV=document.getElementById('atValueDisplay');if(live.isAT){atL.textContent="AT";atL.style.color='var(--secondary)';document.getElementById('timerText').style.color='var(--secondary)';atV.textContent=`+${formatTime(live.atSeconds)}`;}else{atL.textContent=live.maxAtSeconds>0?`AT (+${Math.floor(live.maxAtSeconds/60)}')`:"AT OFF";atL.style.color='var(--text-sub)';document.getElementById('timerText').style.color='var(--primary)';atV.textContent=`+${Math.floor(live.maxAtSeconds/60)}`;}document.getElementById('scoreOwn').textContent=live.score.own;document.getElementById('scoreOpp').textContent=live.score.opp;const pitch=document.getElementById('livePitchArea');pitch.innerHTML='';formations[live.formation].forEach(pos=>{const pId=live.pitchPositions[pos.id],p=db.players.find(x=>x.id===pId),slot=document.createElement('div');slot.className='player-icon';slot.style.top=pos.t;slot.style.left=pos.l;slot.setAttribute('data-pos-id',pos.id);if(!p)slot.innerHTML=`<div class="icon-jersey" style="border-style:dashed;opacity:0.3;" onclick="choosePlayerFor('${pos.id}')">+</div><div class="icon-name">${pos.label}</div>`;else{const g=live.playerGoals[p.id]||0,c=live.playerCards[p.id];slot.innerHTML=`<div class="icon-jersey" onclick="showPlayerActions('${p.id}','${pos.id}')">${p.photo?`<img src="${p.photo}" class="player-photo">`:''}<span class="jersey-num-overlay">${p.num||''}</span></div>${c?`<div style="position:absolute;top:0;right:0;width:10px;height:14px;background:${c==='yellow'?'#facc15':'var(--secondary)'};border-radius:2px;"></div>`:''}<div class="icon-name" onclick="showPlayerActions('${p.id}','${pos.id}')">${p.name}${g>0?` (${g})`:''}</div>`;initDraggable(slot,p.id,pos.id);}pitch.appendChild(slot);});const benchGrid=document.getElementById('benchGrid');benchGrid.innerHTML='';let players=db.players;if(live.selectedTeam){players=players.filter(p=>p.team===live.selectedTeam);if(live.selectedCategory)players=players.filter(p=>p.category===live.selectedCategory);}players.filter(p=>!Object.values(live.pitchPositions).includes(p.id)).forEach(p=>{const chip=document.createElement('div');chip.className='player-chip bench';chip.innerHTML=`<span class="chip-num">${p.num||''}</span>${p.name}`;chip.onclick=()=>showBenchActions(p.id);initDraggable(chip,p.id);benchGrid.appendChild(chip);});const onGrid=document.getElementById('onPitchGrid');onGrid.innerHTML='';Object.entries(live.pitchPositions).forEach(([posId,pId])=>{const p=db.players.find(x=>x.id===pId);if(!p)return;const chip=document.createElement('div');chip.className='player-chip on-pitch';chip.innerHTML=`<span class="chip-num">${p.num||''}</span>${p.name}`;chip.onclick=()=>showPlayerActions(p.id,posId);initDraggable(chip,p.id,posId);onGrid.appendChild(chip);});}
+function modifyAT(v){if(!live.isAT){live.maxAtSeconds=Math.max(0,live.maxAtSeconds+(v*60));updateUI();}}
+function choosePlayerFor(posId){const onIds=Object.values(live.pitchPositions);let bench=db.players.filter(p=>!onIds.includes(p.id));if(live.selectedTeam){bench=bench.filter(p=>p.team===live.selectedTeam);if(live.selectedCategory)bench=bench.filter(p=>p.category===live.selectedCategory);}showActionModal("SELECT PLAYER",bench.map(p=>`<div class="action-btn" onclick="assignPlayer('${posId}','${p.id}')">${p.num?p.num+' ':''}${p.name}</div>`).join('')||"<p style='text-align:center;'>Empty</p>");}
+function assignPlayer(posId,pId){live.pitchPositions[posId]=pId;addEvent(`${db.players.find(x=>x.id===pId).name} IN`);closeModals();updateUI();syncToCloud();}
+function showPlayerActions(pId,posId){const p=db.players.find(x=>x.id===pId);showActionModal(p.name,`<div class="action-btn" onclick="showGoalTypeSelection('${pId}')">GOAL</div><div class="action-btn" onclick="choosePlayerFor('${posId}')">SUBSTITUTION</div><div class="action-btn" onclick="recordCard('${pId}','yellow')">YELLOW CARD</div><div class="action-btn" onclick="recordCard('${pId}','red')">RED CARD</div><div class="action-btn" onclick="unassignPlayer('${posId}')" style="color:var(--secondary);border-color:var(--secondary);">TO BENCH</div>`);}
+function showBenchActions(pId){const p=db.players.find(x=>x.id===pId),f=formations[live.formation];showActionModal(p.name,`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">${f.map(pos=>`<div class="action-btn" style="margin-bottom:0;font-size:12px;" onclick="assignPlayer('${pos.id}','${pId}')">${pos.label}</div>`).join('')}</div><hr style="border:0;border-top:1px solid var(--border);margin:12px 0;"><div class="action-btn" onclick="showGoalTypeSelection('${pId}')">GOAL (From Bench)</div>`);}
+function showGoalTypeSelection(pId){showActionModal(`${db.players.find(x=>x.id===pId).name}`,`<div class="action-btn" onclick="recordGoal('${pId}',false)">NORMAL GOAL</div><div class="action-btn" onclick="recordGoal('${pId}',true)">PK GOAL</div>`);}
+function recordGoal(pId,isPK=false,isOG=false){if(isOG){live.score.opp++;addEvent("OWN GOAL");}else{const p=db.players.find(x=>x.id===pId);if(p){live.playerGoals[pId]=(live.playerGoals[pId]||0)+1;addEvent(`GOAL: ${p.name}${isPK?' (PK)':''}`);}live.score.own++;}closeModals();updateUI();syncToCloud();}
+function recordCard(pId,color){live.playerCards[pId]=color;addEvent(`${color.toUpperCase()}: ${db.players.find(x=>x.id===pId).name}`);closeModals();updateUI();syncToCloud();}
+function unassignPlayer(posId){const pId=live.pitchPositions[posId];delete live.pitchPositions[posId];addEvent(`${db.players.find(x=>x.id===pId).name} OUT`);closeModals();updateUI();syncToCloud();}
+function modifyOwnScore(v){if(v>0){let players=db.players;if(live.selectedTeam){players=players.filter(p=>p.team===live.selectedTeam);if(live.selectedCategory)players=players.filter(p=>p.category===live.selectedCategory);}const onIds=Object.values(live.pitchPositions),onP=players.filter(p=>onIds.includes(p.id)),bench=players.filter(p=>!onIds.includes(p.id));let html=`<div style="font-size:11px;font-weight:700;color:var(--text-sub);margin-bottom:8px;">ON PITCH</div>`+onP.map(p=>`<div class="action-btn" onclick="showGoalTypeSelection('${p.id}')">${p.num?p.num+' ':''}${p.name}</div>`).join('');html+=`<div style="font-size:11px;font-weight:700;color:var(--text-sub);margin:12px 0 8px;">BENCH</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">`+bench.map(p=>`<div class="action-btn" style="font-size:12px;margin-bottom:0;" onclick="showGoalTypeSelection('${p.id}')">${p.num?p.num+' ':''}${p.name}</div>`).join('')+'</div>';html+=`<hr style="border:0;border-top:1px solid var(--border);margin:12px 0;"><div class="action-btn" onclick="recordGoal(null,false,true)">OWN GOAL (Conceded)</div>`;showActionModal("SCORER",html);}else if(live.score.own>0){live.score.own--;addEvent("CANCEL GOAL");updateUI();syncToCloud();}}
+function modifyOppScore(v){if(v>0)showActionModal("CONCEDED",`<div class="action-btn" onclick="live.score.opp++;addEvent('CONCEDED');closeModals();updateUI();syncToCloud();">NORMAL GOAL</div><div class="action-btn" onclick="recordGoal(null,false,true)">OWN GOAL (Own Team)</div>`);else if(live.score.opp>0){live.score.opp--;addEvent("CANCEL CONCEDED");updateUI();syncToCloud();}}
+async function syncToCloud(){if(!live.currentId)return;await supabaseClient.from('match_reports').update({score:`${live.score.own} - ${live.score.opp}`,detail:live.events.map(e=>`[${e.time}] ${e.text}`).join('\n'),memo:document.getElementById('liveMemo').value}).eq('id',live.currentId);}
+function addEvent(txt){const time=live.isAT?`${formatTime(live.timerLeft+live.atSeconds)} (AT)`:formatTime(live.timerLeft);live.events.push({time,text:txt});const entry=document.createElement('div');entry.textContent=`${time} ${txt}`;document.getElementById('eventLog').prepend(entry);}
+function formatTime(s){const m=Math.floor(Math.abs(s)/60),sc=Math.abs(s)%60;return`${m.toString().padStart(2,'0')}:${sc.toString().padStart(2,'0')}`;}
+function updateTimerLogic(){if(!live.timerInterval)return;const now=Date.now(),delta=Math.floor((now-live.lastTickTime)/1000);if(delta>0){live.lastTickTime+=delta*1000;if(!live.isAT){live.timerLeft-=delta;if(live.timerLeft<=0){live.atSeconds=Math.abs(live.timerLeft);live.timerLeft=0;live.isAT=true;addEvent("AT STARTED");}}else{live.atSeconds+=delta;}updateUI();}}
+function toggleTimer(){const btn=document.getElementById('btnTimer');if(live.timerInterval){clearInterval(live.timerInterval);live.timerInterval=null;btn.textContent="RESUME";btn.style.background="var(--bg)";btn.style.color="var(--text-main)";btn.style.border="1px solid var(--border)";}else{live.lastTickTime=Date.now();live.timerInterval=setInterval(updateTimerLogic,1000);btn.textContent="STOP";btn.style.background="var(--primary)";btn.style.color="#fff";btn.style.border="none";}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&live.timerInterval)updateTimerLogic();});
+
+// DRAG
+let draggedElement=null,draggedPlayerId=null,dragSourcePosId=null,scrollInterval=null;
+function initDraggable(el,pId,posId=null){el.addEventListener('touchstart',(e)=>{if(e.touches.length>1)return;draggedElement=el;draggedPlayerId=pId;dragSourcePosId=posId;el.style.opacity='0.6';},{passive:true});el.addEventListener('touchmove',(e)=>{if(!draggedElement)return;const touch=e.touches[0];el.style.position='fixed';el.style.left=touch.clientX+'px';el.style.top=touch.clientY+'px';el.style.zIndex='9999';if(touch.clientY<100){if(!scrollInterval)scrollInterval=setInterval(()=>window.scrollBy(0,-10),20);}else if(touch.clientY>window.innerHeight-100){if(!scrollInterval)scrollInterval=setInterval(()=>window.scrollBy(0,10),20);}else{clearInterval(scrollInterval);scrollInterval=null;}e.preventDefault();},{passive:false});el.addEventListener('touchend',(e)=>{if(!draggedElement)return;clearInterval(scrollInterval);scrollInterval=null;el.style.opacity='1';el.style.position='';el.style.left='';el.style.top='';el.style.zIndex='';const touch=e.changedTouches[0],target=document.elementFromPoint(touch.clientX,touch.clientY),dropZone=target?target.closest('.player-icon,.player-chip,.pitch'):null;if(dropZone)handleDrop(dropZone);else updateUI();draggedElement=null;draggedPlayerId=null;dragSourcePosId=null;});}
+function handleDrop(target){const tPosId=target.getAttribute('data-pos-id');if(tPosId){if(dragSourcePosId){const temp=live.pitchPositions[tPosId];live.pitchPositions[tPosId]=draggedPlayerId;live.pitchPositions[dragSourcePosId]=temp;}else{live.pitchPositions[tPosId]=draggedPlayerId;addEvent(`${db.players.find(x=>x.id===draggedPlayerId).name} IN`);}}else if(target.classList.contains('player-chip')||target.closest('#benchGrid')){if(dragSourcePosId){addEvent(`${db.players.find(x=>x.id===draggedPlayerId).name} OUT`);delete live.pitchPositions[dragSourcePosId];}}syncToCloud();updateUI();}
+
+// REPORTS
+async function fetchReports(){const teamF=document.getElementById('historyFilterMyTeam').value,catF=document.getElementById('historyFilterCategory').value,typeF=document.getElementById('historyFilterType').value;let query=supabaseClient.from('match_reports').select('*').order('created_at',{ascending:false});if(teamF!=='all')query=query.ilike('my_team',`%${teamF}%`);if(catF!=='all')query=query.ilike('my_team',`%(${catF})%`);if(typeF!=='all')query=query.ilike('venue',`%[${typeF}]%`);const{data}=await query;if(!data)return;renderReports(data);updateDashboard(data);const heroTeam=document.getElementById('heroTeamSelect').value,heroCat=document.getElementById('heroCategorySelect').value;let homeData=data;if(heroTeam){homeData=homeData.filter(r=>r.my_team.includes(heroTeam));if(heroCat)homeData=homeData.filter(r=>r.my_team.includes(heroCat));}renderHomeStats(homeData);toggleBulkDeleteBtn();}
+function renderReports(data){const list=document.getElementById('historyList');if(!data.length){list.innerHTML='<div style="text-align:center;padding:40px;font-size:12px;color:var(--text-sub);">No Data</div>';return;}list.innerHTML=data.map(r=>{const date=new Date(r.created_at).toLocaleDateString('ja-JP');return`<details class="report-item"><summary><input type="checkbox" class="bulk-check" value="${r.id}" onclick="event.stopPropagation();toggleBulkDeleteBtn();"><div style="flex:1;"><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text-sub);"><span>${r.my_team} vs ${r.opponent}</span><span>${date}</span></div><div class="report-score">${r.score}</div><div style="font-size:11px;color:var(--text-sub);font-weight:600;">${r.venue}</div></div></summary><div style="padding:20px;background:var(--bg);border-top:1px solid var(--border);"><label class="form-label">LOG</label><textarea id="editDetail_${r.id}" style="height:120px;font-size:13px;margin-bottom:15px;font-family:monospace;">${r.detail}</textarea><label class="form-label">NOTES</label><textarea id="editMemo_${r.id}" style="height:80px;font-size:13px;margin-bottom:15px;">${r.memo||''}</textarea><div class="export-btn-group"><button onclick="exportReportText('${r.id}')">TXT</button><button onclick="exportReportPDF('${r.id}')">PDF</button><button onclick="exportReportImage('${r.id}')">IMG</button></div><div style="display:flex;gap:10px;"><button onclick="saveEditedReport('${r.id}')" style="flex:2;">SAVE</button><button onclick="deleteReport('${r.id}')" style="flex:1;background:var(--secondary);color:#fff;border:none;">DEL</button></div></div></details>`;}).join('');}
+function toggleBulkDeleteBtn(){const cnt=document.querySelectorAll('.bulk-check:checked').length;const btn=document.getElementById('bulkDeleteBtn');btn.style.display=cnt>0?'block':'none';btn.textContent=`DELETE SELECTED (${cnt})`;}
+async function deleteSelectedReports(){const ids=Array.from(document.querySelectorAll('.bulk-check:checked')).map(cb=>cb.value);if(!ids.length)return;if(!confirm(`${ids.length}件を削除しますか？`))return;await supabaseClient.from('match_reports').delete().in('id',ids);fetchReports();}
+function updateHistoryCategoryFilter(){const team=document.getElementById('historyFilterMyTeam').value,filterC=document.getElementById('historyFilterCategory');if(team==='all')filterC.innerHTML='<option value="all">全カテゴリ</option>';else{const cats=db.teams.filter(t=>t.team===team).map(t=>t.category);filterC.innerHTML='<option value="all">全カテゴリ</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');}fetchReports();}
+async function saveEditedReport(id){const{error}=await supabaseClient.from('match_reports').update({detail:document.getElementById(`editDetail_${id}`).value,memo:document.getElementById(`editMemo_${id}`).value}).eq('id',id);if(!error)alert("Saved");else alert("Error");}
+async function deleteReport(id){if(!confirm("削除しますか？"))return;await supabaseClient.from('match_reports').delete().eq('id',id);fetchReports();}
+function exportReportText(id){const d=document.getElementById(`editDetail_${id}`).value,m=document.getElementById(`editMemo_${id}`).value;const blob=new Blob([`Match Report\n\n${d}\n\nNotes:\n${m}`],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`report_${id}.txt`;a.click();}
+function exportReportPDF(id){const d=document.getElementById(`editDetail_${id}`).value,m=document.getElementById(`editMemo_${id}`).value;const el=document.createElement('div');el.innerHTML=`<h2>Match Report</h2><pre style="white-space:pre-wrap;font-family:monospace;">${d}</pre><h3>Notes</h3><p>${m}</p>`;html2pdf().set({margin:10,filename:`report_${id}.pdf`,jsPDF:{orientation:'portrait',unit:'mm',format:'a4'}}).from(el).save();}
+function exportReportImage(id){const d=document.getElementById(`editDetail_${id}`).value,m=document.getElementById(`editMemo_${id}`).value;const canvas=document.createElement('canvas');canvas.width=800;canvas.height=600;const ctx=canvas.getContext('2d');ctx.fillStyle='#f8fafc';ctx.fillRect(0,0,800,600);ctx.fillStyle='#0f172a';ctx.font='bold 24px -apple-system';ctx.fillText('MATCH REPORT',20,40);ctx.font='14px monospace';let y=70;d.split('\n').forEach(line=>{ctx.fillText(line,20,y);y+=20;});ctx.font='bold 16px -apple-system';ctx.fillText('NOTES:',20,y+10);ctx.font='14px -apple-system';y+=32;m.split('\n').forEach(line=>{ctx.fillText(line,20,y);y+=20;});canvas.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`report_${id}.png`;a.click();});}
+
+// STATS
+function updateDashboard(data){let total=data.length,wins=0,draws=0,losses=0,gf=0,ga=0,cs=0;const scorers={};data.forEach(r=>{const[my,op]=r.score.split(' - ').map(Number);gf+=(my||0);ga+=(op||0);if(my>op)wins++;else if(my<op)losses++;else draws++;if(op===0)cs++;(r.detail||"").split('\n').forEach(line=>{if(line.includes('GOAL:')){const m=line.match(/GOAL:\s*(.+?)(?:\s*\(PK\))?$/);if(m&&m[1])scorers[m[1].trim()]=(scorers[m[1].trim()]||0)+1;}});});document.getElementById('dashTotal').textContent=total;document.getElementById('dashWinRate').textContent=total>0?`${Math.round(wins/total*100)}%`:'0%';document.getElementById('dashWDL').textContent=`${wins}W ${losses}L ${draws}D`;document.getElementById('dashCS').textContent=cs;document.getElementById('dashGF').textContent=gf;document.getElementById('dashGA').textContent=ga;const sorted=Object.entries(scorers).sort((a,b)=>b[1]-a[1]).slice(0,3);document.getElementById('dashTopScorers').innerHTML=sorted.length>0?sorted.map((s,i)=>`<li style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;"><span>${i+1}. ${s[0]}</span><span style="color:var(--primary);">${s[1]} G</span></li>`).join(''):'<li style="color:var(--text-sub);text-align:center;padding:10px 0;font-size:12px;">No Data</li>';}
+function exportStatsPDF(){const el=document.createElement('div');el.style.padding='20px';el.style.fontFamily='-apple-system';el.innerHTML=`<h2 style="color:#0f172a;">SEASON STATS</h2><p style="font-size:18px;font-weight:bold;">${document.getElementById('dashWDL').textContent}</p><p>Win Rate: ${document.getElementById('dashWinRate').textContent}</p><p>Goals: ${document.getElementById('dashGF').textContent} / Conceded: ${document.getElementById('dashGA').textContent}</p><p>Clean Sheets: ${document.getElementById('dashCS').textContent}</p>`;html2pdf().set({margin:10,filename:'season_stats.pdf',jsPDF:{orientation:'portrait',unit:'mm',format:'a4'}}).from(el).save();}
+function exportStatsImage(){const canvas=document.createElement('canvas');canvas.width=800;canvas.height=500;const ctx=canvas.getContext('2d');ctx.fillStyle='#0f172a';ctx.fillRect(0,0,800,500);ctx.fillStyle='#059669';ctx.font='bold 36px -apple-system';ctx.fillText('SEASON STATS',40,60);ctx.fillStyle='#ffffff';ctx.font='bold 20px -apple-system';[`GAMES: ${document.getElementById('dashTotal').textContent}`,document.getElementById('dashWDL').textContent,`WIN RATE: ${document.getElementById('dashWinRate').textContent}`,`GOALS: ${document.getElementById('dashGF').textContent}  CONCEDED: ${document.getElementById('dashGA').textContent}`,`CLEAN SHEETS: ${document.getElementById('dashCS').textContent}`].forEach((s,i)=>{ctx.fillText(s,40,130+i*60);});canvas.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='season_stats.png';a.click();});}
+
+// SETTINGS
+async function addMaster(tableType){
+    let result;
+    try {
+        if(tableType==='teams_master'){
+            const team=document.getElementById('teamInName').value.trim(),cat=document.getElementById('categoryInName').value.trim();
+            if(team&&cat){
+                result = await supabaseClient.from('teams_master').insert([{team,category:cat}]);
+                if(!result.error){
+                    document.getElementById('teamInName').value='';
+                    document.getElementById('categoryInName').value='';
+                }
+            }
+        }else if(tableType==='players_master'){
+            const num=document.getElementById('pInNum').value,name=document.getElementById('pInName').value.trim(),team=document.getElementById('pInTeam').value,cat=document.getElementById('pInCategory').value;
+            if(!name){alert("名前を入力してください");return;}
+            const btn=document.getElementById('addPlayerBtn');
+            btn.disabled=true; btn.textContent="SAVING...";
+            let photoUrl=null;
+            if(currentPhotoData){
+                try{
+                    const blob=await(await fetch(currentPhotoData)).blob();
+                    const fn=`photos/${Date.now()}.jpg`;
+                    await supabaseClient.storage.from('pitchside-public').upload(fn,blob);
+                    const{data}=supabaseClient.storage.from('pitchside-public').getPublicUrl(fn);
+                    photoUrl=data.publicUrl;
+                }catch(e){console.error("Photo upload error:", e);}
+            }
+            result = await supabaseClient.from('players_master').insert([{num,name,photo:photoUrl,photo_url:photoUrl,team,category:cat}]);
+            if(!result.error){
+                document.getElementById('pInNum').value='';
+                document.getElementById('pInName').value='';
+                clearPhotoSelection();
+            }
+            btn.disabled=false; btn.textContent="REGISTER";
+        }else if(tableType==='opponents_master'){
+            const name=document.getElementById('oppInName').value.trim();
+            if(name){
+                result = await supabaseClient.from('opponents_master').insert([{name}]);
+                if(!result.error) document.getElementById('oppInName').value='';
+            }
+        }else if(tableType==='tournaments_master'){
+            const name=document.getElementById('tournamentInName').value.trim();
+            if(name){
+                result = await supabaseClient.from('tournaments_master').insert([{name}]);
+                if(!result.error) document.getElementById('tournamentInName').value='';
+            }
+        }else if(tableType==='venues_master'){
+            const name=document.getElementById('venueInName').value.trim();
+            if(name){
+                result = await supabaseClient.from('venues_master').insert([{name}]);
+                if(!result.error) document.getElementById('venueInName').value='';
+            }
+        }
+        
+        if(result && result.error){
+            console.error(`Error adding to ${tableType}:`, result.error);
+            alert(`Error: ${result.error.message}`);
+        } else {
+            await loadMasterData();
+            refreshSettingsUI();
+        }
+    } catch (e) {
+        console.error("Exception in addMaster:", e);
+        alert("System Error.");
+    }
+}
+async function deleteMaster(tableType,id){if(tableType==='teams_master'){const t=db.teams.find(x=>x.id===id);if(t)await supabaseClient.from('players_master').delete().eq('team',t.team).eq('category',t.category);}await supabaseClient.from(tableType).delete().eq('id',id);await loadMasterData();refreshSettingsUI();}
+function showEditPlayerModal(pid){const p=db.players.find(x=>x.id===pid);if(!p)return;editingPlayerId=pid;document.getElementById('editPNum').value=p.num||'';document.getElementById('editPName').value=p.name||'';const eT=document.getElementById('editPTeam');eT.innerHTML='<option value="">選択</option>'+[...new Set(db.teams.map(t=>t.team))].map(t=>`<option value="${t}">${t}</option>`).join('');eT.value=p.team||'';updateCategorySelect('editPTeam','editPCategory');document.getElementById('editPCategory').value=p.category||'';document.getElementById('editPlayerModal').style.display='flex';}
+function closeEditModal(){document.getElementById('editPlayerModal').style.display='none';editingPlayerId=null;}
+async function savePlayerEdit(){if(!editingPlayerId)return;const num=document.getElementById('editPNum').value,name=document.getElementById('editPName').value.trim(),team=document.getElementById('editPTeam').value,category=document.getElementById('editPCategory').value;if(!name){alert("名前を入力");return;}const{error}=await supabaseClient.from('players_master').update({num,name,team,category}).eq('id',editingPlayerId);if(!error){await loadMasterData();refreshSettingsUI();closeEditModal();}else alert("Error");}
+function updateCategorySelect(teamId,catId){const team=document.getElementById(teamId).value,catS=document.getElementById(catId);if(!team){catS.innerHTML='<option value="">選択</option>';return;}catS.innerHTML='<option value="">選択</option>'+db.teams.filter(t=>t.team===team).map(t=>`<option value="${t.category}">${t.category}</option>`).join('');}
+function refreshSettingsUI(){
+    document.getElementById('teamMasterList').innerHTML=db.teams.map(t=>`<div class="master-row"><div><div style="font-weight:700;color:var(--primary);font-size:13px;">${t.team}</div><div style="font-size:11px;color:var(--text-sub);">${t.category}</div></div><button class="chip-action-btn" onclick="deleteMaster('teams_master','${t.id}')">DEL</button></div>`).join('');
+    const grouped={};
+    db.players.forEach(p=>{const k=`${p.team||'未設定'} - ${p.category||'未設定'}`;if(!grouped[k])grouped[k]=[];grouped[k].push(p);});
+    let html='';
+    for(const[k,ps]of Object.entries(grouped)){
+        html+=`<div class="category-header">${k}</div>`;
+        ps.forEach(p=>{html+=`<div class="chip-del"><div class="chip-del-inner">${p.photo?`<img src="${p.photo}" class="chip-del-photo">`:'<div class="chip-del-photo"></div>'}<div class="chip-del-info"><div class="chip-del-name">#${p.num||''} ${p.name}</div><div class="chip-del-meta">${p.team} ${p.category}</div></div><button class="chip-action-btn" onclick="showEditPlayerModal('${p.id}')" style="margin-right:8px;width:auto;padding:0 12px;">EDIT</button><button class="chip-action-btn" onclick="deleteMaster('players_master','${p.id}')">DEL</button></div></div>`;});
+    }
+    document.getElementById('pMasterListGrouped').innerHTML=html;
+    const teamOptions='<option value="">選択</option>'+[...new Set(db.teams.map(t=>t.team))].map(t=>`<option value="${t}">${t}</option>`).join('');
+    document.getElementById('pInTeam').innerHTML=teamOptions;
+    document.getElementById('heroTeamSelect').innerHTML='<option value="">チームを選択</option>'+[...new Set(db.teams.map(t=>t.team))].map(t=>`<option value="${t}">${t}</option>`).join('');
+    
+    document.getElementById('tournamentMasterList').innerHTML=db.tournaments.map(t=>`<div class="master-row"><div style="font-size:13px;font-weight:600;">${t.name}</div><button class="chip-action-btn" onclick="deleteMaster('tournaments_master','${t.id}')">DEL</button></div>`).join('');
+    document.getElementById('homeTournament').innerHTML='<option value="">大会名</option>'+db.tournaments.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+    
+    document.getElementById('venueMasterList').innerHTML=db.venues.map(v=>`<div class="master-row"><div style="font-size:13px;font-weight:600;">${v.name}</div><button class="chip-action-btn" onclick="deleteMaster('venues_master','${v.id}')">DEL</button></div>`).join('');
+    document.getElementById('homeVenue').innerHTML='<option value="">会場を選択</option>'+db.venues.map(v=>`<option value="${v.name}">${v.name}</option>`).join('');
+    
+    document.getElementById('oppMasterList').innerHTML=db.opps.map(o=>`<div class="master-row"><div style="font-size:13px;font-weight:600;">${o.name}</div><button class="chip-action-btn" onclick="deleteMaster('opponents_master','${o.id}')">DEL</button></div>`).join('');
+    
+    updateQuickLists();
+}
+function updateQuickLists(){const container=document.getElementById('homeQuickOppList');container.innerHTML=db.opps.slice(0,8).map(o=>`<div class="opp-chip" onclick="document.getElementById('homeOppName').value='${o.name}'">${o.name}</div>`).join('');}
+function closeModals(){document.getElementById('actionModal').style.display='none';}
+function showActionModal(title,html){document.getElementById('modalTitle').textContent=title;document.getElementById('modalList').innerHTML=html;document.getElementById('actionModal').style.display='flex';}
+let currentPhotoData=null;
+function previewPhoto(input){if(input.files&&input.files[0]){const reader=new FileReader();reader.onload=(e)=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');const M=120;let w=img.width,h=img.height;if(w>h){if(w>M){h*=M/w;w=M;}}else{if(h>M){w*=M/h;h=M;}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);currentPhotoData=canvas.toDataURL('image/jpeg',0.7);document.getElementById('pInPhotoPreview').src=currentPhotoData;document.getElementById('pInPhotoPreview').style.display='block';document.getElementById('photoClearBtn').style.display='flex';};img.src=e.target.result;};reader.readAsDataURL(input.files[0]);}}
+function clearPhotoSelection(e){if(e)e.stopPropagation();currentPhotoData=null;document.getElementById('pInPhoto').value='';document.getElementById('pInPhotoPreview').style.display='none';document.getElementById('photoClearBtn').style.display='none';}
+</script>
+</body>
+</html>
