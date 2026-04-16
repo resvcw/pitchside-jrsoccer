@@ -405,9 +405,17 @@ async function loadMasterData() {
 }
 
 function checkPass() {
-    if(document.getElementById('passcode').value === '2026') {
+    const passcode = document.getElementById('passcode').value;
+    console.log('Passcode entered:', passcode);
+    
+    if(passcode === '2026') {
+        console.log('Passcode correct, setting localStorage and reloading...');
         localStorage.setItem('ps_logged_in', 'true');
-        location.reload();
+        setTimeout(() => {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('mainUI').style.display = 'block';
+            loadMasterData();
+        }, 100);
     } else {
         alert('パスコードが違います');
     }
